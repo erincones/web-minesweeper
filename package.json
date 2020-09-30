@@ -1,0 +1,54 @@
+{
+  "name": "web-minesweeper",
+  "version": "1.0.0",
+  "description": "Web version of the classic minesweeper",
+  "private": true,
+  "scripts": {
+    "build": "gatsby build",
+    "deploy": "gatsby build --prefix-paths && gh-pages -d public",
+    "develop": "gatsby develop",
+    "start": "npm run develop",
+    "serve": "gatsby serve",
+    "clean": "gatsby clean",
+    "test": "echo \"Write tests! -> https://gatsby.dev/unit-testing\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/erincones/web-minesweeper.git"
+  },
+  "author": "Erick Rincones <erick.rincones@ciens.ucv.ve>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/erincones/web-minesweeper/issues"
+  },
+  "homepage": "https://erincones.github.io/web-minesweeper/",
+  "dependencies": {
+    "cssnano": "^4.1.10",
+    "gatsby": "^2.24.66",
+    "gatsby-plugin-manifest": "^2.4.32",
+    "gatsby-plugin-react-helmet": "^3.3.12",
+    "gatsby-plugin-sass": "^2.3.14",
+    "gh-pages": "^3.1.0",
+    "postcss-import": "^12.0.1",
+    "postcss-preset-env": "^6.7.0",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-helmet": "^6.1.0",
+    "sass": "^1.26.11",
+    "tailwindcss": "^1.8.10"
+  },
+  "devDependencies": {
+    "@types/node": "^14.11.2",
+    "@types/react": "^16.9.49",
+    "@types/react-dom": "^16.9.8",
+    "@types/react-helmet": "^6.1.0",
+    "@typescript-eslint/eslint-plugin": "^4.3.0",
+    "@typescript-eslint/parser": "^4.3.0",
+    "eslint": "^7.10.0",
+    "eslint-plugin-react": "^7.21.2",
+    "eslint-plugin-react-hooks": "^4.1.2",
+    "stylelint": "^13.7.2",
+    "stylelint-config-recommended": "^3.0.0",
+    "typescript": "^4.0.3"
+  }
+}

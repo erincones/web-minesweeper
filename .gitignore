@@ -1,0 +1,12 @@
+# Dependencies directory
+node_modules/
+
+# Cache and public directories
+.cache/
+public/
+
+# Visual Studio Code configuration directory
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/settings.json
