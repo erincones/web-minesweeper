@@ -1,9 +1,12 @@
 module.exports = {
-  extends: `stylelint-config-recommended`,
+  extends: [ `stylelint-config-recommended` ],
+  plugins: [ `stylelint-scss` ],
   rules: {
     "declaration-block-trailing-semicolon": null,
     "no-descending-specificity": null,
-    "at-rule-no-unknown": [
+    "string-quotes": `double`,
+    "at-rule-no-unknown": null,
+    "scss/at-rule-no-unknown": [
       true,
       {
         ignoreAtRules: [
