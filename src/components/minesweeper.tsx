@@ -33,8 +33,8 @@ interface Sunken {
  * Cell interface
  */
 interface Cell {
-  readonly state: `new` | `flag` | `interrogation` | `exploded` | number,
-  readonly empty: boolean
+  readonly data: CellData;
+  readonly empty: boolean;
 }
 
 /**
@@ -58,12 +58,41 @@ interface Style {
 
 
 /**
+ * Game status enumeration
+ */
+enum GameStatus {
+  NEW,
+  PLAYING,
+  EXPLODED,
+  WIN
+}
+
+/**
+ * Cell data enumeration
+ */
+enum CellData {
+  RAISED,
+  FLAG,
+  MARK,
+  SUNKEN,
+  ONE,
+  TWO,
+  THREE,
+  FOUR,
+  FIVE,
+  SIX,
+  SEVEN,
+  EIGHT
+}
+
+
+/**
  * Get the face class
  *
  * @param sunken Sunken status
  * @param status Game status
  */
-const faceClass = (sunken: Sunken, status: string): string => {
+const faceClass = (sunken: Sunken, status: GameStatus): string => {
   // Other than face
   if (sunken.active !== -1) {
     return sunken.sunken ? `face-surprised` : `face-smile`;
@@ -76,8 +105,8 @@ const faceClass = (sunken: Sunken, status: string): string => {
 
   // Game status
   switch (status) {
-    case `dead`: return `face-dead`;
-    case `win`: return `face-win`;
+    case GameStatus.EXPLODED: return `face-dead`;
+    case GameStatus.WIN: return `face-win`;
     default: return `face-smile`;
   }
 };
@@ -88,25 +117,24 @@ const faceClass = (sunken: Sunken, status: string): string => {
  * @param cell Board cell
  * @param status Game status
  */
-const cellClass = (cell: Cell, sunken: boolean, status: string): string => {
-  const isSunken = sunken && status === `playing`;
-  const mine = status === `exploded` && !cell.empty;
+const cellClass = (cell: Cell, sunken: boolean, status: GameStatus): string => {
+  const mine = !cell.empty && (status === GameStatus.EXPLODED);
+  const raised = !sunken || (status !== GameStatus.PLAYING);
 
-  switch (cell.state) {
-    case `new`: return mine ? `cell-mine` : isSunken ? `cell-empty` : `cell-new`;
-    case `flag`: return mine ? `cell-mine-wrong` : `cell-flag`;
-    case `interrogation`: return isSunken ? `cell-interrogation-sunken` : `cell-interrogation`;
-    case `exploded`: return `cell-mine-exploded`;
-    case 0: return `cell-empty`;
-    case 1: return `cell-1`;
-    case 2: return `cell-2`;
-    case 3: return `cell-3`;
-    case 4: return `cell-4`;
-    case 5: return `cell-5`;
-    case 6: return `cell-6`;
-    case 7: return `cell-7`;
-    case 8: return `cell-8`;
-    default: return `cell-new`;
+  switch (cell.data) {
+    case CellData.RAISED: return mine ? `cell-mine` : raised ? `cell-raised` : `cell-0`;
+    case CellData.FLAG:   return mine ? `cell-mine-wrong` : `cell-flag`;
+    case CellData.MARK:   return raised ? `cell-mark` : `cell-mark-sunken`;
+    case CellData.SUNKEN: return mine ? `cell-mine-exploded` : `cell-0`;
+    case CellData.ONE:    return `cell-1`;
+    case CellData.TWO:    return `cell-2`;
+    case CellData.THREE:  return `cell-3`;
+    case CellData.FOUR:   return `cell-4`;
+    case CellData.FIVE:   return `cell-5`;
+    case CellData.SIX:    return `cell-6`;
+    case CellData.SEVEN:  return `cell-7`;
+    case CellData.EIGHT:  return `cell-8`;
+    default: return `cell-raised`;
   }
 };
 
@@ -118,8 +146,10 @@ const cellClass = (cell: Cell, sunken: boolean, status: string): string => {
  */
 export const Minesweeper = ({ game = { rows: 9, columns: 9, mines: 10 }, scale = 1 }: Props): JSX.Element => {
   const [ { rows, columns, mines }, setGame ] = useState<Game>(game);
-  const [ exploded, setExploded ] = useState(false);
   const [ sunken, setSunken ] = useState<Sunken>({ active: NaN, sunken: false });
+  const [ status, setStatus ] = useState(GameStatus.NEW);
+  const [ flags, setFlags ] = useState(0);
+  const [ raised, setRaised ] = useState(rows * columns);
   const [ board, setBoard ] = useState<Cell[]>([]);
 
 
@@ -130,19 +160,22 @@ export const Minesweeper = ({ game = { rows: 9, columns: 9, mines: 10 }, scale =
     const mines = Math.min(Math.max(game.mines, 10), (rows - 1) * (columns - 1));
 
     setGame({ rows, columns, mines });
+    setStatus(GameStatus.NEW);
+    setFlags(0);
+    setRaised(rows * columns);
   }, [ game ]);
 
   // New game
   useEffect(() => {
     const cells = rows * columns;
-    const board = Array<Cell>(cells).fill({ state: `new`, empty: true });
+    const board = Array<Cell>(cells).fill({ data: CellData.RAISED, empty: true });
     let remaining = mines;
 
     while (remaining > 0) {
       const mine = Math.trunc(Math.random() * cells);
 
       if (board[mine].empty) {
-        board[mine] = { state: `new`, empty: false };
+        board[mine] = { data: CellData.RAISED, empty: false };
         remaining--;
       }
     }
@@ -215,23 +248,6 @@ export const Minesweeper = ({ game = { rows: 9, columns: 9, mines: 10 }, scale =
     event.preventDefault();
   }, []);
 
-
-  // Game status
-  const status = useMemo(() => {
-    if (exploded) {
-      return `exploded`;
-    }
-
-    let sunkens = 0;
-
-    for (const cell of board) {
-      if (typeof cell.state === `number`) {
-        sunkens++;
-      }
-    }
-
-    return sunkens < (rows * columns - mines) ? `playing` : `win`;
-  }, [ exploded, board, rows, columns, mines ]);
 
   // Styles
   const style = useMemo<Style>(() => {
@@ -307,7 +323,7 @@ export const Minesweeper = ({ game = { rows: 9, columns: 9, mines: 10 }, scale =
           <Corners type="sunken" sprite={style.sprite} style={style.corners2} />
 
           {/* LCDs and face */}
-          <LCD number={mines} sprite={style.sprite} styles={{ container: style.mines, corners: style.corners1, digit: style.digit }} />
+          <LCD number={mines - flags} sprite={style.sprite} styles={{ container: style.mines, corners: style.corners1, digit: style.digit }} />
           <button id="-1" type="button" onMouseDown={e => { handleMouseDown(e); }} onMouseEnter={e => { handleMouseEnter(e); }} onMouseLeave={e => { handleMouseLeave(e); }} className={`${style.sprite} face ${faceClass(sunken, status)} cursor-default focus:outline-none`} style={style.face} />
           <LCD number={0} sprite={style.sprite} styles={{ container: style.time, corners: style.corners1, digit: style.digit }} />
         </div>
