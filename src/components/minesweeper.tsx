@@ -5,10 +5,20 @@ import { LCD } from "./lcd";
 
 
 /**
- * Minesweeper interface properties
+ * Minesweeper properties interface
  */
-interface Props {
+export interface Props {
+  readonly game?: Game;
   readonly scale?: number;
+}
+
+/**
+ * Game interface
+ */
+export interface Game {
+  readonly rows: number;
+  readonly columns: number;
+  readonly mines: number;
 }
 
 /**
@@ -51,9 +61,9 @@ interface Style {
  * Get the face class
  *
  * @param sunken Sunken status
- * @param game Game status
+ * @param status Game status
  */
-const faceClass = (sunken: Sunken, game: string): string => {
+const faceClass = (sunken: Sunken, status: string): string => {
   // Other than face
   if (sunken.active !== -1) {
     return sunken.sunken ? `face-surprised` : `face-smile`;
@@ -65,7 +75,7 @@ const faceClass = (sunken: Sunken, game: string): string => {
   }
 
   // Game status
-  switch (game) {
+  switch (status) {
     case `dead`: return `face-dead`;
     case `win`: return `face-win`;
     default: return `face-smile`;
@@ -76,11 +86,11 @@ const faceClass = (sunken: Sunken, game: string): string => {
  * Get cell class
  *
  * @param cell Board cell
- * @param gameOver Game over status
+ * @param status Game status
  */
-const cellClass = (cell: Cell, sunken: boolean, game: string): string => {
-  const isSunken = sunken && game === `playing`;
-  const mine = game === `exploded` && !cell.empty;
+const cellClass = (cell: Cell, sunken: boolean, status: string): string => {
+  const isSunken = sunken && status === `playing`;
+  const mine = status === `exploded` && !cell.empty;
 
   switch (cell.state) {
     case `new`: return mine ? `cell-mine` : isSunken ? `cell-empty` : `cell-new`;
@@ -106,12 +116,39 @@ const cellClass = (cell: Cell, sunken: boolean, game: string): string => {
  *
  * @param props Minesweeper properties
  */
-export const Minesweeper = ({ scale = 1 }: Props): JSX.Element => {
+export const Minesweeper = ({ game = { rows: 9, columns: 9, mines: 10 }, scale = 1 }: Props): JSX.Element => {
+  const [ { rows, columns, mines }, setGame ] = useState<Game>(game);
   const [ exploded, setExploded ] = useState(false);
   const [ sunken, setSunken ] = useState<Sunken>({ active: NaN, sunken: false });
-  const [ { rows, columns, mines }, setGame ] = useState({ rows: 9, columns: 9, mines: 10 });
-  const [ board, setBoard ] = useState(Array<Cell>(rows * columns).fill({ state: `new`, empty: true }));
+  const [ board, setBoard ] = useState<Cell[]>([]);
 
+
+  // Fix game
+  useEffect(() => {
+    const rows = Math.min(Math.max(game.rows, 8), 24);
+    const columns = Math.min(Math.max(game.columns, 8), 30);
+    const mines = Math.min(Math.max(game.mines, 10), (rows - 1) * (columns - 1));
+
+    setGame({ rows, columns, mines });
+  }, [ game ]);
+
+  // New game
+  useEffect(() => {
+    const cells = rows * columns;
+    const board = Array<Cell>(cells).fill({ state: `new`, empty: true });
+    let remaining = mines;
+
+    while (remaining > 0) {
+      const mine = Math.trunc(Math.random() * cells);
+
+      if (board[mine].empty) {
+        board[mine] = { state: `new`, empty: false };
+        remaining--;
+      }
+    }
+
+    setBoard(board);
+  }, [ rows, columns, mines ]);
 
   // Global mouse up listener
   useEffect(() => {
@@ -180,7 +217,7 @@ export const Minesweeper = ({ scale = 1 }: Props): JSX.Element => {
 
 
   // Game status
-  const game = useMemo(() => {
+  const status = useMemo(() => {
     if (exploded) {
       return `exploded`;
     }
@@ -271,7 +308,7 @@ export const Minesweeper = ({ scale = 1 }: Props): JSX.Element => {
 
           {/* LCDs and face */}
           <LCD number={mines} sprite={style.sprite} styles={{ container: style.mines, corners: style.corners1, digit: style.digit }} />
-          <button id="-1" type="button" onMouseDown={e => { handleMouseDown(e); }} onMouseEnter={e => { handleMouseEnter(e); }} onMouseLeave={e => { handleMouseLeave(e); }} className={`${style.sprite} face ${faceClass(sunken, game)} cursor-default focus:outline-none`} style={style.face} />
+          <button id="-1" type="button" onMouseDown={e => { handleMouseDown(e); }} onMouseEnter={e => { handleMouseEnter(e); }} onMouseLeave={e => { handleMouseLeave(e); }} className={`${style.sprite} face ${faceClass(sunken, status)} cursor-default focus:outline-none`} style={style.face} />
           <LCD number={0} sprite={style.sprite} styles={{ container: style.time, corners: style.corners1, digit: style.digit }} />
         </div>
 
@@ -282,7 +319,7 @@ export const Minesweeper = ({ scale = 1 }: Props): JSX.Element => {
 
           {/* Cells */}
           {board.map((cell, i) => (
-            <button key={i} id={i.toString()} type="button" onMouseDown={e => { handleMouseDown(e); }} onMouseEnter={e => { handleMouseEnter(e); }} onMouseLeave={e => { handleMouseLeave(e); }} className={`${style.sprite} ${cellClass(cell, (sunken.active === i) && sunken.sunken, game)} cursor-default focus:outline-none`} style={style.cell} />
+            <button key={i} id={i.toString()} type="button" onMouseDown={e => { handleMouseDown(e); }} onMouseEnter={e => { handleMouseEnter(e); }} onMouseLeave={e => { handleMouseLeave(e); }} className={`${style.sprite} ${cellClass(cell, (sunken.active === i) && sunken.sunken, status)} cursor-default focus:outline-none`} style={style.cell} />
           ))}
         </div>
       </div>
