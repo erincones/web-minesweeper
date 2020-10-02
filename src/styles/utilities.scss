@@ -1,2 +1,213 @@
 // Utilites
 @tailwind utilities;
+
+
+// Borders
+
+.border-raised {
+  border-color:
+    theme("borderColor.white")
+    theme("borderColor.gray.default")
+    theme("borderColor.gray.default")
+    theme("borderColor.white");
+}
+
+.border-sunken {
+  border-color:
+    theme("borderColor.gray.default")
+    theme("borderColor.white")
+    theme("borderColor.white")
+    theme("borderColor.gray.default");
+}
+
+
+// Sprite
+
+.sprite {
+  background-image: url("../images/atlas.png");
+  background-repeat: no-repeat;
+}
+
+.pixelated {
+  image-rendering: pixelated;
+}
+
+
+// Corners
+
+.corner-1 {
+  width: 1px;
+  height: 1px;
+}
+
+.corner-2 {
+  width: 2px;
+  height: 2px;
+}
+
+.corner-3 {
+  width: 3px;
+  height: 3px;
+}
+
+.corner-raised {
+  transform: scaleY(-1);
+  background-position: 100% 100%;
+}
+
+.corner-sunken {
+  transform: scaleX(-1);
+  background-position: 100% 100%;
+}
+
+
+// Faces
+
+.face {
+  width: 26px;
+  height: 26px;
+}
+
+.face-smile {
+  background-position: 66.6667% 0;
+}
+
+.face-win {
+  background-position: 100% 0;
+}
+
+.face-dead {
+  background-position: 66.6667% 24.2991%;
+}
+
+.face-surprised {
+  background-position: 100% 24.2991%;
+}
+
+.face-sunken {
+  background-position: 100% 48.5981%;
+}
+
+
+// Digits
+
+.digit {
+  width: 13px;
+  height: 23px;
+}
+
+.digit-minus {
+  background-position: 0 0;
+}
+
+.digit-0 {
+  background-position: 14.2857% 0;
+}
+
+.digit-1 {
+  background-position: 28.5714% 0;
+}
+
+.digit-2 {
+  background-position: 42.8571% 0;
+}
+
+.digit-3 {
+  background-position: 0 20.9091%;
+}
+
+.digit-4 {
+  background-position: 14.2857% 20.9091%;
+}
+
+.digit-5 {
+  background-position: 28.5714% 20.9091%;
+}
+
+.digit-6 {
+  background-position: 42.8571% 20.9091%;
+}
+
+.digit-7 {
+  background-position: 0 41.8182%;
+}
+
+.digit-8 {
+  background-position: 14.2857% 41.8182%;
+}
+
+.digit-9 {
+  background-position: 28.5714% 41.8182%;
+}
+
+
+// Cells
+
+.cell {
+  width: 16px;
+  height: 16px
+}
+
+.cell-new {
+  background-position: 0 58.9744%;
+}
+
+.cell-flag {
+  background-position: 18.1818% 58.9744%;
+}
+
+.cell-interrogation {
+  background-position: 36.3636% 58.9744%;
+}
+
+.cell-interrogation-sunken {
+  background-position: 54.5456% 58.9744%;
+}
+
+.cell-empty {
+  background-position: 0 72.6496%;
+}
+
+.cell-1 {
+  background-position: 18.1818% 72.6496%;
+}
+
+.cell-2 {
+  background-position: 36.3636% 72.6496%;
+}
+
+.cell-3 {
+  background-position: 54.5456% 72.6496%;
+}
+
+.cell-4 {
+  background-position: 0 86.3248%;
+}
+
+.cell-5 {
+  background-position: 18.1818% 86.3248%;
+}
+
+.cell-6 {
+  background-position: 36.3636% 86.3248%;
+}
+
+.cell-7 {
+  background-position: 54.5456% 86.3248%;
+}
+
+.cell-8 {
+  background-position: 0 100%;
+}
+
+.cell-mine {
+  background-position: 18.1818% 100%;
+}
+
+.cell-mine-wrong {
+  background-position: 36.3636% 100%;
+}
+
+.cell-mine-exploded {
+  background-position: 54.5456% 100%;
+}
