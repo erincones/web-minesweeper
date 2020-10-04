@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 import { SEO } from "../components/seo";
-import { Minesweeper, Game } from "../components/minesweeper";
+import { Minesweeper, beginner, Game } from "../components/minesweeper";
 
 
 /**
@@ -9,12 +9,13 @@ import { Minesweeper, Game } from "../components/minesweeper";
  */
 const Index = (): JSX.Element => {
   const [ scale, setScale ] = useState(100);
-  const [ { rows, columns, mines }, setGame ] = useState<Game>({ rows: 9, columns: 9, mines: 10 });
+  const [ game, setGame ] = useState<Game>(beginner);
 
+  // Return page
   return (
     <>
       <SEO />
-      <Minesweeper game={{ rows, columns, mines }} scale={scale / 100} />
+      <Minesweeper game={game} scale={scale / 100} />
     </>
   );
 };

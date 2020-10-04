@@ -1,7 +1,9 @@
 import React, { useState, useMemo, useCallback, MouseEvent, useEffect, CSSProperties } from "react";
-import { Corners } from "./corners";
 
+import { Corners } from "./corners";
 import { LCD } from "./lcd";
+
+import { noop } from "../utils/helpers";
 
 
 /**
@@ -10,6 +12,9 @@ import { LCD } from "./lcd";
 export interface Props {
   readonly game?: Game;
   readonly scale?: number;
+  readonly onFlagsChange?: (flags: number) => void;
+  readonly onTimeChange?: (time: number) => void;
+  readonly onStatusChange?: (status: GameStatus) => void;
 }
 
 /**
@@ -34,7 +39,7 @@ interface Sunken {
  * Cell interface
  */
 interface Cell {
-  readonly data: Data;
+  readonly data: CellData;
   readonly empty: boolean;
 }
 
@@ -61,7 +66,7 @@ interface Style {
 /**
  * Game status enumeration
  */
-enum Status {
+export enum GameStatus {
   NEW = 1,
   EXPLODED = 2,
   WIN = 4,
@@ -71,7 +76,7 @@ enum Status {
 /**
  * Cell data enumeration
  */
-enum Data {
+enum CellData {
   RAISED,
   FLAG,
   MARK,
@@ -87,9 +92,9 @@ enum Data {
 }
 
 /**
- * Mouse buttons enumeration
+ * Mouse button enumeration
  */
-enum Buttons {
+enum MouseButton {
   NONE = 0,
   PRIMARY = 1,
   SECONDARY = 2,
@@ -100,16 +105,39 @@ enum Buttons {
 
 
 /**
+ * 8x8 board with 10 mines
+ */
+export const beginnerClassic: Game = { rows: 8, columns: 8, mines: 10 };
+
+/**
+ * 9x9 board with 10 mines
+ */
+export const beginner: Game = { rows: 9, columns: 9, mines: 10 };
+
+/**
+ * 16x16 board with 40 mines
+ */
+export const intermediate: Game = { rows: 16, columns: 16, mines: 40 };
+
+/**
+ * 16x30 board with 40 mines
+ */
+export const expert: Game = { rows: 16, columns: 30, mines: 99 };
+
+
+
+/**
  * Minesweeper component
  *
  * @param props Minesweeper properties
  */
-export const Minesweeper = ({ game = { rows: 9, columns: 9, mines: 10 }, scale = 1 }: Props): JSX.Element => {
+export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, onTimeChange = noop, onStatusChange = noop }: Props): JSX.Element => {
   const [ { rows, columns, mines }, setGame ] = useState<Game>(game);
-  const [ sunken, setSunken ] = useState<Sunken>({ source: ``, target: ``, buttons: Buttons.NONE });
-  const [ status, setStatus ] = useState(Status.NEW);
+  const [ sunken, setSunken ] = useState<Sunken>({ source: ``, target: ``, buttons: MouseButton.NONE });
+  const [ status, setStatus ] = useState(GameStatus.NEW);
   const [ flags, setFlags ] = useState(0);
-  const [ raised, setRaised ] = useState(rows * columns);
+  const [ time, setTime ] = useState(0);
+  const [ raised, setRaised ] = useState(0);
   const [ board, setBoard ] = useState<Cell[]>([]);
 
 
@@ -120,7 +148,7 @@ export const Minesweeper = ({ game = { rows: 9, columns: 9, mines: 10 }, scale =
     const mines = Math.min(Math.max(game.mines, 10), (rows - 1) * (columns - 1));
 
     setGame({ rows, columns, mines });
-    setStatus(Status.NEW);
+    setStatus(GameStatus.NEW);
     setFlags(0);
     setRaised(rows * columns);
   }, [ game ]);
@@ -128,14 +156,14 @@ export const Minesweeper = ({ game = { rows: 9, columns: 9, mines: 10 }, scale =
   // New game
   useEffect(() => {
     const cells = rows * columns;
-    const board = Array<Cell>(cells).fill({ data: Data.RAISED, empty: true });
+    const board = Array<Cell>(cells).fill({ data: CellData.RAISED, empty: true });
     let remaining = mines;
 
     while (remaining > 0) {
       const mine = Math.trunc(Math.random() * cells);
 
       if (board[mine].empty) {
-        board[mine] = { data: Data.RAISED, empty: false };
+        board[mine] = { data: CellData.RAISED, empty: false };
         remaining--;
       }
     }
@@ -143,8 +171,24 @@ export const Minesweeper = ({ game = { rows: 9, columns: 9, mines: 10 }, scale =
     setBoard(board);
   }, [ rows, columns, mines ]);
 
-  // Global mouse up listener
+  // Handle flags change
   useEffect(() => {
+    onFlagsChange(flags);
+  }, [ onFlagsChange, flags ]);
+
+  // Handle time change
+  useEffect(() => {
+    onTimeChange(time);
+  }, [ onTimeChange, time ]);
+
+  // Handle status change
+  useEffect(() => {
+    onStatusChange(status);
+  }, [ onStatusChange, status ]);
+
+  // Global mouse up handler
+  useEffect(() => {
+    // Mouse up handler
     const handleMouseUp = (event: globalThis.MouseEvent) => {
       // Prevent default and get target
       event.preventDefault();
@@ -152,10 +196,10 @@ export const Minesweeper = ({ game = { rows: 9, columns: 9, mines: 10 }, scale =
 
 
       // Update sunken
-      setSunken(event.buttons === Buttons.NONE ? {
+      setSunken(event.buttons === MouseButton.NONE ? {
         source: ``,
         target: ``,
-        buttons: Buttons.NONE
+        buttons: MouseButton.NONE
       } : {
         source: sunken.source,
         target: sunken.target,
@@ -163,8 +207,14 @@ export const Minesweeper = ({ game = { rows: 9, columns: 9, mines: 10 }, scale =
       });
     };
 
+    // Register handler
     document.addEventListener(`mouseup`, handleMouseUp);
-    return () => { document.removeEventListener(`mouseup`, handleMouseUp); };
+
+
+    // Remove handler
+    return () => {
+      document.removeEventListener(`mouseup`, handleMouseUp);
+    };
   }, [ sunken.source, sunken.target, sunken.buttons ]);
 
 
@@ -176,19 +226,19 @@ export const Minesweeper = ({ game = { rows: 9, columns: 9, mines: 10 }, scale =
 
     // Check target and buttons
     if (
-      (event.buttons === Buttons.SECONDARY) &&
+      (event.buttons === MouseButton.SECONDARY) &&
       ((target.id.length !== 0) && (target.id !== `f`))
     ) {
       // Get the current data
       const id = parseInt(target.id);
       const currentData = board[id].data;
-      let newData: Data;
+      let newData: CellData;
 
       // Get the new data and update flags
       switch (currentData) {
-        case Data.RAISED: newData = Data.FLAG; setFlags(flags + 1); break;
-        case Data.FLAG:   newData = Data.MARK; setFlags(flags - 1); break;
-        case Data.MARK:   newData = Data.RAISED; break;
+        case CellData.RAISED: newData = CellData.FLAG; setFlags(flags + 1); break;
+        case CellData.FLAG:   newData = CellData.MARK; setFlags(flags - 1); break;
+        case CellData.MARK:   newData = CellData.RAISED; break;
         default: newData = currentData;
       }
 
@@ -216,7 +266,7 @@ export const Minesweeper = ({ game = { rows: 9, columns: 9, mines: 10 }, scale =
     const face = target.id === `f`;
 
     // Update sunken
-    if ((source || !face) && (event.buttons !== Buttons.NONE)) {
+    if ((source || !face) && (event.buttons !== MouseButton.NONE)) {
       setSunken({
         source: source ? sunken.source : target.id,
         target: target.id,
@@ -304,35 +354,29 @@ export const Minesweeper = ({ game = { rows: 9, columns: 9, mines: 10 }, scale =
     };
   }, [ scale, columns ]);
 
-  // Game over
-  const gameOver = useMemo(() =>
-    (status & Status.GAME_OVER) !== 0
-  , [ status ]);
-
-  // Source face
-  const sourceFace = useMemo(() =>
-    sunken.source === `f`
-  , [ sunken.source ]);
-
-  // Buttons raised
-  const buttonsRaised = useMemo(() =>
-    (sunken.buttons & Buttons.SUNKEN) === Buttons.NONE
-  , [ sunken.buttons ]);
-
   // Face class
   const faceClass = useMemo(() => {
     // Sunken face
-    if ((sunken.source === `f`) && (sunken.target === `f`) && (sunken.buttons === Buttons.PRIMARY)) {
+    if ((sunken.source === `f`) && (sunken.target === `f`) && (sunken.buttons === MouseButton.PRIMARY)) {
       return `face-sunken`;
     }
 
     // Status game
     switch (status) {
-      case Status.EXPLODED: return `face-dead`;
-      case Status.WIN: return `face-win`;
-      default: return (sunken.source !== `f`) && ((sunken.buttons & Buttons.PRIMARY) !== Buttons.NONE) ? `face-surprised` : `face-smile`;
+      case GameStatus.EXPLODED: return `face-dead`;
+      case GameStatus.WIN: return `face-win`;
+      default: return (sunken.source !== `f`) && ((sunken.buttons & MouseButton.PRIMARY) !== MouseButton.NONE) ? `face-surprised` : `face-smile`;
     }
   }, [ status, sunken.source, sunken.target, sunken.buttons ]);
+
+  // Game over
+  const gameOver = (status & GameStatus.GAME_OVER) !== 0;
+
+  // Source face
+  const sourceFace = sunken.source === `f`;
+
+  // Buttons raised
+  const buttonsRaised = (sunken.buttons & MouseButton.SUNKEN) === MouseButton.NONE;
 
 
   // Return the minesweeper game
@@ -348,7 +392,7 @@ export const Minesweeper = ({ game = { rows: 9, columns: 9, mines: 10 }, scale =
           {/* LCDs and face */}
           <LCD number={mines - flags} sprite={style.sprite} styles={{ container: style.mines, corners: style.corners1, digit: style.digit }} />
           <button id="f" type="button" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className={`${style.sprite} face ${faceClass} cursor-default focus:outline-none`} style={style.face} />
-          <LCD number={0} sprite={style.sprite} styles={{ container: style.time, corners: style.corners1, digit: style.digit }} />
+          <LCD number={time} sprite={style.sprite} styles={{ container: style.time, corners: style.corners1, digit: style.digit }} />
         </div>
 
 
@@ -364,18 +408,18 @@ export const Minesweeper = ({ game = { rows: 9, columns: 9, mines: 10 }, scale =
             let cellClass: string;
 
             switch (cell.data) {
-              case Data.RAISED: cellClass = mine ? `cell-mine` : raised ? `cell-raised` : `cell-0`; break;
-              case Data.FLAG:   cellClass = mine ? `cell-mine-wrong` : `cell-flag`; break;
-              case Data.MARK:   cellClass = raised ? `cell-mark` : `cell-mark-sunken`; break;
-              case Data.SUNKEN: cellClass = mine ? `cell-mine-exploded` : `cell-0`; break;
-              case Data.ONE:    cellClass = `cell-1`; break;
-              case Data.TWO:    cellClass = `cell-2`; break;
-              case Data.THREE:  cellClass = `cell-3`; break;
-              case Data.FOUR:   cellClass = `cell-4`; break;
-              case Data.FIVE:   cellClass = `cell-5`; break;
-              case Data.SIX:    cellClass = `cell-6`; break;
-              case Data.SEVEN:  cellClass = `cell-7`; break;
-              case Data.EIGHT:  cellClass = `cell-8`; break;
+              case CellData.RAISED: cellClass = mine ? `cell-mine` : raised ? `cell-raised` : `cell-0`; break;
+              case CellData.FLAG:   cellClass = mine ? `cell-mine-wrong` : `cell-flag`; break;
+              case CellData.MARK:   cellClass = raised ? `cell-mark` : `cell-mark-sunken`; break;
+              case CellData.SUNKEN: cellClass = mine ? `cell-mine-exploded` : `cell-0`; break;
+              case CellData.ONE:    cellClass = `cell-1`; break;
+              case CellData.TWO:    cellClass = `cell-2`; break;
+              case CellData.THREE:  cellClass = `cell-3`; break;
+              case CellData.FOUR:   cellClass = `cell-4`; break;
+              case CellData.FIVE:   cellClass = `cell-5`; break;
+              case CellData.SIX:    cellClass = `cell-6`; break;
+              case CellData.SEVEN:  cellClass = `cell-7`; break;
+              case CellData.EIGHT:  cellClass = `cell-8`; break;
               default: cellClass = `cell-raised`;
             }
 
