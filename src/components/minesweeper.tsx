@@ -100,6 +100,7 @@ enum MouseButton {
   NONE = 0,
   PRIMARY = 1,
   SECONDARY = 2,
+  BOTH = 3,
   AUXILIAR = 4,
   SUNKEN = 5,
   ANY = 7
@@ -127,7 +128,6 @@ export const intermediate: Game = { rows: 16, columns: 16, mines: 40 };
 export const expert: Game = { rows: 16, columns: 30, mines: 99 };
 
 
-
 /**
  * Minesweeper component
  *
@@ -144,156 +144,35 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
   const timer = useInterval(() => { setTime(time => time + 1); }, 1000, false);
 
 
-  // Fix game
-  useEffect(() => {
-    const rows = Math.min(Math.max(game.rows, 8), 24);
-    const columns = Math.min(Math.max(game.columns, 8), 30);
-    const mines = Math.min(Math.max(game.mines, 10), (rows - 1) * (columns - 1));
+  // Game over
+  const gameOver = (status & GameStatus.GAME_OVER) !== 0;
 
-    setGame({ rows, columns, mines });
-    setStatus(GameStatus.NEW);
-    setFlags(0);
-    setRaised(rows * columns);
-  }, [ game ]);
+  // Source face
+  const sourceFace = sunken.source === `f`;
 
-  // New game
-  useEffect(() => {
-    const cells = rows * columns;
-    const board = Array<Cell>(cells).fill({ data: CellData.RAISED, empty: true });
-    let remaining = mines;
+  // Buttons raised
+  const buttonsRaised = (sunken.buttons & MouseButton.SUNKEN) === MouseButton.NONE;
 
-    while (remaining > 0) {
-      const mine = Math.trunc(Math.random() * cells);
+  // Target ID
+  const target = parseInt(sunken.target);
 
-      if (board[mine].empty) {
-        board[mine] = { data: CellData.RAISED, empty: false };
-        remaining--;
-      }
+  // Sunken around target
+  const around = ((sunken.buttons & MouseButton.AUXILIAR) === MouseButton.AUXILIAR) || ((sunken.buttons & MouseButton.BOTH) === MouseButton.BOTH);
+
+  // Face class
+  const faceClass = useMemo(() => {
+    // Sunken face
+    if ((sunken.source === `f`) && (sunken.target === `f`) && ((sunken.buttons & MouseButton.PRIMARY) === MouseButton.PRIMARY)) {
+      return `face-sunken`;
     }
 
-    setBoard(board);
-  }, [ rows, columns, mines ]);
-
-  // Handle flags change
-  useEffect(() => {
-    onFlagsChange(flags);
-  }, [ onFlagsChange, flags ]);
-
-  // Handle time change
-  useEffect(() => {
-    onTimeChange(time);
-  }, [ onTimeChange, time ]);
-
-  // Handle status change
-  useEffect(() => {
-    onStatusChange(status);
-  }, [ onStatusChange, status ]);
-
-  // Global mouse up handler
-  useEffect(() => {
-    // Mouse up handler
-    const handleMouseUp = (event: globalThis.MouseEvent) => {
-      // Prevent default and get target
-      event.preventDefault();
-      const target = event.target as HTMLElement;
-
-
-      // Update sunken
-      setSunken(event.buttons === MouseButton.NONE ? {
-        source: ``,
-        target: ``,
-        buttons: MouseButton.NONE
-      } : {
-        source: sunken.source,
-        target: sunken.target,
-        buttons: sunken.buttons ^ event.buttons
-      });
-    };
-
-    // Register handler
-    document.addEventListener(`mouseup`, handleMouseUp);
-
-
-    // Remove handler
-    return () => {
-      document.removeEventListener(`mouseup`, handleMouseUp);
-    };
-  }, [ sunken.source, sunken.target, sunken.buttons ]);
-
-
-  // Mouse down handler
-  const handleMouseDown = useCallback((event: MouseEvent<HTMLDivElement>) => {
-    // Prevent default and get target
-    event.preventDefault();
-    const target = event.target as HTMLElement;
-
-    // Check target and buttons
-    if (
-      (event.buttons === MouseButton.SECONDARY) &&
-      ((target.id.length !== 0) && (target.id !== `f`))
-    ) {
-      // Get the current data
-      const id = parseInt(target.id);
-      const currentData = board[id].data;
-      let newData: CellData;
-
-      // Get the new data and update flags
-      switch (currentData) {
-        case CellData.RAISED: newData = CellData.FLAG; setFlags(flags + 1); break;
-        case CellData.FLAG:   newData = CellData.MARK; setFlags(flags - 1); break;
-        case CellData.MARK:   newData = CellData.RAISED; break;
-        default: newData = currentData;
-      }
-
-      // Update board
-      setBoard(board.map((cell, i) => id !== i ? cell : {
-        data: newData,
-        empty: cell.empty
-      }));
+    // Status game
+    switch (status) {
+      case GameStatus.EXPLODED: return `face-dead`;
+      case GameStatus.WIN: return `face-win`;
+      default: return (sunken.source !== `f`) && ((sunken.buttons & MouseButton.PRIMARY) !== MouseButton.NONE) ? `face-surprised` : `face-smile`;
     }
-
-    // Update sunken
-    setSunken({
-      source: sunken.source.length ? sunken.source : target.id,
-      target: target.id,
-      buttons: sunken.buttons | event.buttons
-    });
-  }, [ sunken.source, sunken.buttons, flags, board ]);
-
-  // Mouse enter handler
-  const handleMouseEnter = useCallback((event: MouseEvent<HTMLButtonElement>) => {
-    // Prevent default, get the current target and source
-    event.preventDefault();
-    const target = event.currentTarget;
-    const source = sunken.source.length !== 0;
-    const face = target.id === `f`;
-
-    // Update sunken
-    if ((source || !face) && (event.buttons !== MouseButton.NONE)) {
-      setSunken({
-        source: source ? sunken.source : target.id,
-        target: target.id,
-        buttons: event.buttons
-      });
-    }
-  }, [ sunken.source ]);
-
-  // Mouse leave handler
-  const handleMouseLeave = useCallback((event: MouseEvent<HTMLElement>) => {
-    if (sunken.source.length !== 0) {
-      setSunken({
-        source: sunken.source,
-        target: ``,
-        buttons: event.buttons
-      });
-    }
-  }, [ sunken.source ]);
-
-  // Context menu handler
-  const handleContextMenu = useCallback((event: MouseEvent<HTMLDivElement>) => {
-    event.preventDefault();
-  }, []);
-
+  }, [ status, sunken.source, sunken.target, sunken.buttons ]);
 
   // Styles
   const style = useMemo<Style>(() => {
@@ -357,29 +236,200 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
     };
   }, [ scale, columns ]);
 
-  // Face class
-  const faceClass = useMemo(() => {
-    // Sunken face
-    if ((sunken.source === `f`) && (sunken.target === `f`) && (sunken.buttons === MouseButton.PRIMARY)) {
-      return `face-sunken`;
+
+  // Check if a cell is raised
+  const isRaised = useCallback((cell: number, target: number, around: boolean) => {
+    // Current target
+    if (cell === target) {
+      return false;
     }
 
-    // Status game
-    switch (status) {
-      case GameStatus.EXPLODED: return `face-dead`;
-      case GameStatus.WIN: return `face-win`;
-      default: return (sunken.source !== `f`) && ((sunken.buttons & MouseButton.PRIMARY) !== MouseButton.NONE) ? `face-surprised` : `face-smile`;
+    // Look around
+    if (around) {
+      // Up and down
+      if ((cell === (target - columns)) || (cell === (target + columns))) {
+        return false;
+      }
+
+      // Get current column
+      const col = target % columns;
+
+      // Left
+      if (
+        (col > 0) &&                          // Check left border
+        ((cell === (target - 1)) ||           // Left
+        (cell === (target - columns - 1)) ||  // Top left
+        (cell === (target + columns - 1)))    // Bottom left
+      ) {
+        return false;
+      }
+
+      // Right
+      if (
+        (col < columns - 1) &&                // Check right border
+        ((cell === (target + 1)) ||           // Right
+        (cell === (target - columns + 1)) ||  // Top right
+        (cell === (target + columns + 1)))    // Bottom rght
+      ) {
+        return false;
+      }
+
+      // Other
+      return true;
     }
-  }, [ status, sunken.source, sunken.target, sunken.buttons ]);
+    else {
+      return true;
+    }
+  }, [ columns ]);
 
-  // Game over
-  const gameOver = (status & GameStatus.GAME_OVER) !== 0;
+  // Context menu handler
+  const handleContextMenu = useCallback((event: MouseEvent<HTMLDivElement>) => {
+    event.preventDefault();
+  }, []);
 
-  // Source face
-  const sourceFace = sunken.source === `f`;
+  // Mouse enter handler
+  const handleMouseEnter = useCallback((event: MouseEvent<HTMLButtonElement>) => {
+    // Prevent default, get the current target and source
+    event.preventDefault();
+    const target = event.currentTarget;
+    const source = sunken.source.length !== 0;
 
-  // Buttons raised
-  const buttonsRaised = (sunken.buttons & MouseButton.SUNKEN) === MouseButton.NONE;
+    // Update sunken
+    if ((source || (target.id !== `f`)) && ((sunken.buttons & MouseButton.SUNKEN) !== MouseButton.NONE)) {
+      setSunken({
+        source: source ? sunken.source : target.id,
+        target: target.id,
+        buttons: event.buttons
+      });
+    }
+  }, [ sunken.source, sunken.buttons ]);
+
+  // Mouse leave handler
+  const handleMouseLeave = useCallback((event: MouseEvent<HTMLElement>) => {
+    if (sunken.source.length !== 0) {
+      setSunken({
+        source: sunken.source,
+        target: ``,
+        buttons: event.buttons
+      });
+    }
+  }, [ sunken.source ]);
+
+  // Mouse down handler
+  const handleMouseDown = useCallback((event: MouseEvent<HTMLDivElement>) => {
+    // Prevent default and get target
+    event.preventDefault();
+    const target = event.target as HTMLElement;
+
+    // Check target and buttons
+    if (
+      (event.buttons === MouseButton.SECONDARY) &&
+      ((target.id.length !== 0) && (target.id !== `f`))
+    ) {
+      // Get the current data
+      const id = parseInt(target.id);
+      const currentData = board[id].data;
+      let newData: CellData;
+
+      // Get the new data and update flags
+      switch (currentData) {
+        case CellData.RAISED: newData = CellData.FLAG; setFlags(flags + 1); break;
+        case CellData.FLAG:   newData = CellData.MARK; setFlags(flags - 1); break;
+        case CellData.MARK:   newData = CellData.RAISED; break;
+        default: newData = currentData;
+      }
+
+      // Update board
+      setBoard(board.map((cell, i) => id !== i ? cell : {
+        data: newData,
+        empty: cell.empty
+      }));
+    }
+
+    // Update sunken
+    setSunken({
+      source: sunken.source.length ? sunken.source : target.id,
+      target: target.id,
+      buttons: sunken.buttons | event.buttons
+    });
+  }, [ sunken.source, sunken.buttons, flags, board ]);
+
+
+  // Global mouse up handler
+  useEffect(() => {
+    // Mouse up handler
+    const handleMouseUp = (event: globalThis.MouseEvent) => {
+      // Prevent default and get target
+      event.preventDefault();
+      const target = event.target as HTMLElement;
+
+
+      // Update sunken
+      setSunken(event.buttons === MouseButton.NONE ? {
+        source: ``,
+        target: ``,
+        buttons: MouseButton.NONE
+      } : {
+        source: sunken.source,
+        target: sunken.target,
+        buttons: event.buttons
+      });
+    };
+
+    // Register handler
+    document.addEventListener(`mouseup`, handleMouseUp);
+
+
+    // Remove handler
+    return () => {
+      document.removeEventListener(`mouseup`, handleMouseUp);
+    };
+  }, [ sunken.source, sunken.target, sunken.buttons ]);
+
+  // Fix game
+  useEffect(() => {
+    const rows = Math.min(Math.max(game.rows, 8), 24);
+    const columns = Math.min(Math.max(game.columns, 8), 30);
+    const mines = Math.min(Math.max(game.mines, 10), (rows - 1) * (columns - 1));
+
+    setGame({ rows, columns, mines });
+    setStatus(GameStatus.NEW);
+    setFlags(0);
+    setRaised(rows * columns);
+  }, [ game ]);
+
+  // New game
+  useEffect(() => {
+    const cells = rows * columns;
+    const board = Array<Cell>(cells).fill({ data: CellData.RAISED, empty: true });
+    let remaining = mines;
+
+    while (remaining > 0) {
+      const mine = Math.trunc(Math.random() * cells);
+
+      if (board[mine].empty) {
+        board[mine] = { data: CellData.RAISED, empty: false };
+        remaining--;
+      }
+    }
+
+    setBoard(board);
+  }, [ rows, columns, mines ]);
+
+  // Handle flags change
+  useEffect(() => {
+    onFlagsChange(flags);
+  }, [ onFlagsChange, flags ]);
+
+  // Handle time change
+  useEffect(() => {
+    onTimeChange(time);
+  }, [ onTimeChange, time ]);
+
+  // Handle status change
+  useEffect(() => {
+    onStatusChange(status);
+  }, [ onStatusChange, status ]);
 
 
   // Return the minesweeper game
@@ -405,9 +455,8 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
 
           {/* Cells */}
           {board.map((cell, i) => {
-            const id = i.toString();
             const mine = gameOver && !cell.empty;
-            const raised = gameOver || sourceFace || buttonsRaised || (sunken.target !== id);
+            const raised = gameOver || sourceFace || buttonsRaised || isRaised(i, target, around);
             let cellClass: string;
 
             switch (cell.data) {
@@ -426,7 +475,7 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
               default: cellClass = `cell-raised`;
             }
 
-            return <button key={i} id={id} type="button" onMouseEnter={handleMouseEnter} className={`${style.sprite} ${cellClass} cursor-default focus:outline-none`} style={style.cell} />;
+            return <button key={i} id={i.toString()} type="button" onMouseEnter={handleMouseEnter} className={`${style.sprite} ${cellClass} cursor-default focus:outline-none`} style={style.cell} />;
           })}
         </div>
       </div>
