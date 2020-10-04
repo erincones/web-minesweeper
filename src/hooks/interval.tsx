@@ -24,6 +24,7 @@ export interface Interval {
 export const useInterval = (handler: () => void, tick: number, start = true): Interval => {
   const callback = useRef(handler);
   const interval = useRef(0);
+  const [ change, setChange ] = useState(0);
   const [ period, setPeriod ] = useState(tick);
   const [ running, setRunning ] = useState(start);
 
@@ -31,6 +32,7 @@ export const useInterval = (handler: () => void, tick: number, start = true): In
   // Update handler
   const setHandler = useCallback((handler: () => void) => {
     callback.current = handler;
+    setChange(change => change + 1);
   }, []);
 
   // Clear interval
@@ -49,9 +51,13 @@ export const useInterval = (handler: () => void, tick: number, start = true): In
     // Set new interval
     interval.current = running ? window.setInterval(() => { callback.current(); }, period) : 0;
 
+    // Update hook
+    hook.current.tick = period;
+    hook.current.running = running;
+
     // Clear interval
     return clear;
-  }, [ running, period, clear ]);
+  }, [ change, running, period, clear ]);
 
   // Update period and running status effect
   useEffect(() => {
@@ -61,12 +67,15 @@ export const useInterval = (handler: () => void, tick: number, start = true): In
   }, [ period, running ]);
 
 
-  return {
+  // Hook
+  const hook = useRef({
     handler: callback.current,
     tick: period,
     running: running,
     setHandler: setHandler,
     setTick: setPeriod,
     setRunning: setRunning
-  };
+  });
+
+  return hook.current;
 };
