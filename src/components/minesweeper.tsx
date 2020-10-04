@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useCallback, MouseEvent, useEffect, CSSProperties } from "react";
 
+import { useInterval } from "../hooks/interval";
+
 import { Corners } from "./corners";
 import { LCD } from "./lcd";
 
@@ -139,6 +141,7 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
   const [ time, setTime ] = useState(0);
   const [ raised, setRaised ] = useState(0);
   const [ board, setBoard ] = useState<Cell[]>([]);
+  const timer = useInterval(() => { setTime(time => time + 1); }, 1000, false);
 
 
   // Fix game
