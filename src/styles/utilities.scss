@@ -69,23 +69,23 @@
 }
 
 .face-smile {
-  background-position: 66.6667% 0;
+  background-position: 0 100%;
 }
 
 .face-win {
-  background-position: 100% 0;
+  background-position: 34.6667% 71.1111%;
 }
 
 .face-dead {
-  background-position: 66.6667% 24.2991%;
+  background-position: 0% 71.1111%;
 }
 
 .face-surprised {
-  background-position: 100% 24.2991%;
+  background-position: 34.6667% 100%;
 }
 
 .face-sunken {
-  background-position: 100% 48.5981%;
+  background-position: 69.3333% 100%;
 }
 
 
@@ -97,47 +97,47 @@
 }
 
 .digit-minus {
-  background-position: 0 0;
+  background-position: 72.7273% 0;
 }
 
 .digit-0 {
-  background-position: 14.2857% 0;
+  background-position: 86.3636% 0;
 }
 
 .digit-1 {
-  background-position: 28.5714% 0;
+  background-position: 100% 0;
 }
 
 .digit-2 {
-  background-position: 42.8571% 0;
+  background-position: 72.7273% 23.6559%;
 }
 
 .digit-3 {
-  background-position: 0 20.9091%;
+  background-position: 86.3636% 23.6559%;
 }
 
 .digit-4 {
-  background-position: 14.2857% 20.9091%;
+  background-position: 100% 23.6559%;
 }
 
 .digit-5 {
-  background-position: 28.5714% 20.9091%;
+  background-position: 72.7273% 47.3118%;
 }
 
 .digit-6 {
-  background-position: 42.8571% 20.9091%;
+  background-position: 86.3636% 47.3118%;
 }
 
 .digit-7 {
-  background-position: 0 41.8182%;
+  background-position: 100% 47.3118%;
 }
 
 .digit-8 {
-  background-position: 14.2857% 41.8182%;
+  background-position: 72.7273% 70.9677%;
 }
 
 .digit-9 {
-  background-position: 28.5714% 41.8182%;
+  background-position: 86.3636% 70.9677%;
 }
 
 
@@ -148,66 +148,66 @@
   height: 16px
 }
 
-.cell-raised {
-  background-position: 0 58.9744%;
+.cell-clean {
+  background-position: 0 0;
 }
 
 .cell-flag {
-  background-position: 18.1818% 58.9744%;
+  background-position: 18.8235% 0;
 }
 
 .cell-mark {
-  background-position: 36.3636% 58.9744%;
+  background-position: 37.6471% 0;
 }
 
 .cell-mark-sunken {
-  background-position: 54.5456% 58.9744%;
+  background-position: 56.4706% 0;
 }
 
 .cell-0 {
-  background-position: 0 72.6496%;
+  background-position: 0 16%;
 }
 
 .cell-1 {
-  background-position: 18.1818% 72.6496%;
+  background-position: 18.8235% 16%;
 }
 
 .cell-2 {
-  background-position: 36.3636% 72.6496%;
+  background-position: 37.6471% 16%;
 }
 
 .cell-3 {
-  background-position: 54.5456% 72.6496%;
+  background-position: 56.4705% 16%;
 }
 
 .cell-4 {
-  background-position: 0 86.3248%;
+  background-position: 0 32%;
 }
 
 .cell-5 {
-  background-position: 18.1818% 86.3248%;
+  background-position: 18.8235% 32%;
 }
 
 .cell-6 {
-  background-position: 36.3636% 86.3248%;
+  background-position: 37.6471% 32%;
 }
 
 .cell-7 {
-  background-position: 54.5456% 86.3248%;
+  background-position: 56.4705% 86.3248%;
 }
 
 .cell-8 {
-  background-position: 0 100%;
+  background-position: 0 48%;
 }
 
 .cell-mine {
-  background-position: 18.1818% 100%;
+  background-position: 18.8235% 48%;
 }
 
 .cell-mine-wrong {
-  background-position: 36.3636% 100%;
+  background-position: 37.6471% 48%;
 }
 
 .cell-mine-exploded {
-  background-position: 54.5456% 100%;
+  background-position: 56.4705% 48%;
 }

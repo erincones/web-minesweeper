@@ -172,13 +172,13 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
     switch (status) {
       case GameStatus.EXPLODED: return `face-dead`;
       case GameStatus.WIN: return `face-win`;
-      default: return (sunken.source !== `f`) && ((sunken.buttons & MouseButtons.PRIMARY) !== MouseButtons.NONE) ? `face-surprised` : `face-smile`;
+      default: return (sunken.source !== `f`) && ((sunken.buttons & MouseButtons.SUNKEN) !== MouseButtons.NONE) ? `face-surprised` : `face-smile`;
     }
   }, [ status, sunken.source, sunken.target, sunken.buttons ]);
 
   // Styles
   const style = useMemo<Style>(() => {
-    const backgroundSize = `${104 * scale}px ${133 * scale}px`;
+    const backgroundSize = `${101 * scale}px ${116 * scale}px`;
 
     return {
       sprite: scale > 1 ? `sprite pixelated` : `sprite`,
@@ -502,7 +502,7 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
             let cellClass: string;
 
             switch (cell.data) {
-              case CellData.CLEAN:  cellClass = mine ? `cell-mine` : raised ? `cell-raised` : `cell-0`; break;
+              case CellData.CLEAN:  cellClass = mine ? `cell-mine` : raised ? `cell-clean` : `cell-0`; break;
               case CellData.FLAG:   cellClass = mine ? `cell-mine-wrong` : `cell-flag`; break;
               case CellData.MARK:   cellClass = raised ? `cell-mark` : `cell-mark-sunken`; break;
               case CellData.SUNKEN: cellClass = mine ? `cell-mine-exploded` : `cell-0`; break;
@@ -514,7 +514,7 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
               case CellData.SIX:    cellClass = `cell-6`; break;
               case CellData.SEVEN:  cellClass = `cell-7`; break;
               case CellData.EIGHT:  cellClass = `cell-8`; break;
-              default: cellClass = `cell-raised`;
+              default: cellClass = `cell-clean`;
             }
 
             return <button key={i} id={i.toString()} type="button" onMouseEnter={handleMouseEnter} className={`${style.sprite} ${cellClass} cursor-default focus:outline-none`} style={style.cell} />;
