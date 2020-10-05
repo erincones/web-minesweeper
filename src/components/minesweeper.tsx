@@ -89,10 +89,11 @@ enum CellData {
   SIX = 6,
   SEVEN = 7,
   EIGHT = 8,
+  SURROUNDED = 15,
   CLEAN = 16,
   FLAG = 32,
   MARK = 64,
-  RAISED = 112
+  SINKABLE = 80
 }
 
 /**
@@ -131,13 +132,24 @@ export const expert: Game = { rows: 16, columns: 30, mines: 99 };
 
 
 /**
+ * Initial sunken state
+ */
+const initialSunken: Sunken = { source: ``, target: ``, buttons: MouseButtons.NONE };
+
+/**
+ * Inicial cell state
+ */
+const initialCell: Cell = { data: CellData.CLEAN, empty: true };
+
+
+/**
  * Minesweeper component
  *
  * @param props Minesweeper properties
  */
 export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, onTimeChange = noop, onStatusChange = noop }: Props): JSX.Element => {
   const [ { rows, columns, mines }, setGame ] = useState<Game>(game);
-  const [ sunken, setSunken ] = useState<Sunken>({ source: ``, target: ``, buttons: MouseButtons.NONE });
+  const [ sunken, setSunken ] = useState<Sunken>(initialSunken);
   const [ status, setStatus ] = useState(GameStatus.NEW);
   const [ flags, setFlags ] = useState(0);
   const [ time, setTime ] = useState(0);
@@ -145,6 +157,14 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
   const [ board, setBoard ] = useState<Cell[]>([]);
   const timer = useInterval(() => { setTime(time => time + 1); }, 1000, false);
 
+
+  //
+
+  // Exploded
+  const exploded = (status & GameStatus.EXPLODED) === GameStatus.EXPLODED;
+
+  // Win
+  const win = (status & GameStatus.WIN) === GameStatus.WIN;
 
   // Game over
   const gameOver = (status & GameStatus.GAME_OVER) !== GameStatus.PLAYING;
@@ -174,7 +194,7 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
       case GameStatus.WIN: return `face-win`;
       default: return (sunken.source !== `f`) && ((sunken.buttons & MouseButtons.SUNKEN) !== MouseButtons.NONE) ? `face-surprised` : `face-smile`;
     }
-  }, [ status, sunken.source, sunken.target, sunken.buttons ]);
+  }, [ status, sunken ]);
 
   // Styles
   const style = useMemo<Style>(() => {
@@ -240,7 +260,7 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
 
 
   // Check if a cell is raised
-  const isRaised = useCallback((cell: number, target: number, around: boolean) => {
+  const isRaised = useCallback((cell: number, target: number) => {
     // Current target
     if (cell === target) {
       return false;
@@ -279,7 +299,39 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
 
     // Out of range cells
     return true;
-  }, [ columns ]);
+  }, [ columns, around ]);
+
+  // Sink the target cell
+  const sink = useCallback((field: Cell[], target: number, raised: number) => {
+    const cell = field[target];
+    let remaining = raised;
+
+    // Empty cell
+    if (cell.empty) {
+      remaining--;
+      field[target] = { data: CellData.SUNKEN, empty: true };
+
+
+      // Win game
+      if (remaining === mines) {
+        setStatus(GameStatus.WIN);
+        timer.setRunning(false);
+      }
+    }
+
+    // Mine cell
+    else {
+      // Sink cell
+      field[target] = { data: CellData.SUNKEN, empty: false };
+
+      // Stop game
+      setStatus(GameStatus.EXPLODED);
+      timer.setRunning(false);
+    }
+
+    // Return the field
+    return { field, remaining };
+  }, [ mines, timer ]);
 
   // Context menu handler
   const handleContextMenu = useCallback((event: MouseEvent<HTMLDivElement>) => {
@@ -327,22 +379,21 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
     ) {
       // Get the current data
       const id = parseInt(target.id);
-      const currentData = board[id].data;
+      const { data } = board[id];
       let newData: CellData;
 
       // Get the new data and update flags
-      switch (currentData) {
+      switch (data) {
         case CellData.CLEAN: newData = CellData.FLAG; setFlags(flags + 1); break;
-        case CellData.FLAG:   newData = CellData.MARK; setFlags(flags - 1); break;
-        case CellData.MARK:   newData = CellData.CLEAN; break;
-        default: newData = currentData;
+        case CellData.FLAG:  newData = CellData.MARK; setFlags(flags - 1); break;
+        case CellData.MARK:  newData = CellData.CLEAN; break;
+        default: newData = data;
       }
 
       // Update board
-      setBoard(board.map((cell, i) => id !== i ? cell : {
-        data: newData,
-        empty: cell.empty
-      }));
+      setBoard(board.map((cell, i) =>
+        id !== i ? cell : { data: newData, empty: cell.empty }
+      ));
     }
 
     // Update sunken
@@ -361,38 +412,61 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
       // Prevent default and get target
       event.preventDefault();
       const target = event.target as HTMLElement;
-      const raised = sunken.buttons ^ event.buttons;
+      const button = sunken.buttons ^ event.buttons;
 
       // Face target with primary button
       if (target.id === `f`) {
-        if (raised === MouseButtons.PRIMARY) {
+        if (button === MouseButtons.PRIMARY) {
           setStatus(GameStatus.NEW);
         }
       }
 
       // Cell target
-      else if (target.id.length !== 0) {
+      else if (!gameOver && (target.id.length !== 0)) {
         // Get cell
         const id = parseInt(target.id);
-        const cell = board[id];
+        const field = [ ...board ];
+        const { data, empty } = field[id];
 
-        // Around sunken
-        if ((raised === MouseButtons.AUXILIAR) || (sunken.buttons === MouseButtons.BOTH)) {
-          if ((cell.data !== CellData.SUNKEN) && ((cell.data & CellData.CLEAN) === CellData.SUNKEN)) {
-            console.log(`sink around`);
+        // Sink around
+        if ((button === MouseButtons.AUXILIAR) || ((sunken.buttons & MouseButtons.BOTH) === MouseButtons.BOTH)) {
+          if ((data & CellData.SURROUNDED) !== CellData.SUNKEN) {
+            const newBoard = sink(field, id, button);
+            setBoard(newBoard.field);
+            setRaised(newBoard.remaining);
           }
         }
 
         // Single
-        else if (raised === MouseButtons.PRIMARY) {
-          console.log(`sink`);
+        else if ((button === MouseButtons.PRIMARY) && ((data & CellData.SINKABLE) !== CellData.SUNKEN)) {
+          const field = [ ...board ];
 
-          // Start game
-          setStatus(GameStatus.PLAYING);
-          timer.setRunning(true);
+          // New game
+          if (status === GameStatus.NEW) {
+            // Reallocate mine
+            if (!empty) {
+              const cells = rows * columns;
+              let dest = Math.trunc(Math.random() * cells);
+              field[id] = initialCell;
+
+              while (!field[id].empty) {
+                dest = Math.trunc(Math.random() * cells);
+              }
+
+              field[dest] = { data: CellData.CLEAN, empty: false };
+            }
+
+            // Start game
+            setStatus(GameStatus.PLAYING);
+            timer.setRunning(true);
+          }
+
+          // Sink cell
+          const newBoard = sink(field, id, raised);
+          setBoard(newBoard.field);
+          setRaised(newBoard.remaining);
         }
       }
-
 
       // Update sunken
       setSunken(sunken => event.buttons === MouseButtons.NONE ? {
@@ -414,12 +488,12 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
     return () => {
       document.removeEventListener(`mouseup`, handleMouseUp);
     };
-  }, [ sunken.source, sunken.target, sunken.buttons, board, timer ]);
+  }, [ rows, columns, sunken, status, gameOver, raised, board, timer, sink ]);
 
   // Fix game
   useEffect(() => {
     // Clamp values
-    const rows = Math.min(Math.max(game.rows, 8), 24);
+    const rows = Math. min(Math.max(game.rows, 8), 24);
     const columns = Math.min(Math.max(game.columns, 8), 30);
     const mines = Math.min(Math.max(game.mines, 10), (rows - 1) * (columns - 1));
 
@@ -437,7 +511,7 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
 
     // Create empty board
     const cells = rows * columns;
-    const board = Array<Cell>(cells).fill({ data: CellData.CLEAN, empty: true });
+    const board = Array<Cell>(cells).fill(initialCell);
     let remaining = mines;
 
     // Put mines
@@ -497,13 +571,13 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
 
           {/* Cells */}
           {board.map((cell, i) => {
-            const mine = gameOver && !cell.empty;
-            const raised = gameOver || sourceFace || buttonsRaised || isRaised(i, target, around);
+            const mine = exploded && !cell.empty;
+            const raised = gameOver || sourceFace || buttonsRaised || isRaised(i, target);
             let cellClass: string;
 
             switch (cell.data) {
-              case CellData.CLEAN:  cellClass = mine ? `cell-mine` : raised ? `cell-clean` : `cell-0`; break;
-              case CellData.FLAG:   cellClass = mine ? `cell-mine-wrong` : `cell-flag`; break;
+              case CellData.CLEAN:  cellClass = mine ? `cell-mine` : win ? `cell-flag` : raised ? `cell-clean` : `cell-0`; break;
+              case CellData.FLAG:   cellClass = !gameOver || mine ? `cell-flag` : `cell-mine-wrong`; break;
               case CellData.MARK:   cellClass = raised ? `cell-mark` : `cell-mark-sunken`; break;
               case CellData.SUNKEN: cellClass = mine ? `cell-mine-exploded` : `cell-0`; break;
               case CellData.ONE:    cellClass = `cell-1`; break;
