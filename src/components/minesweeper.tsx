@@ -89,7 +89,6 @@ enum CellData {
   SIX = 6,
   SEVEN = 7,
   EIGHT = 8,
-  SURROUNDED = 15,
   CLEAN = 16,
   FLAG = 32,
   MARK = 64,
@@ -158,7 +157,8 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
   const timer = useInterval(() => { setTime(time => time + 1); }, 1000, false);
 
 
-  //
+  // Cells
+  const cells = rows * columns;
 
   // Exploded
   const exploded = (status & GameStatus.EXPLODED) === GameStatus.EXPLODED;
@@ -179,7 +179,7 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
   const target = parseInt(sunken.target);
 
   // Sunken around target
-  const around = ((sunken.buttons & MouseButtons.AUXILIAR) === MouseButtons.AUXILIAR) || ((sunken.buttons & MouseButtons.BOTH) === MouseButtons.BOTH);
+  const sinkAround = ((sunken.buttons & MouseButtons.AUXILIAR) === MouseButtons.AUXILIAR) || ((sunken.buttons & MouseButtons.BOTH) === MouseButtons.BOTH);
 
   // Face class
   const faceClass = useMemo(() => {
@@ -259,6 +259,63 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
   }, [ scale, columns ]);
 
 
+  // Get cells around target
+  const cellsAround = useCallback((target: number) => {
+    const around: number[] = [];
+    const col = target % columns;
+    let pos: number;
+
+    // Top and bottom
+    pos = target - columns;
+    if (pos >= 0) {
+      around.push(target - columns);
+    }
+
+    pos = target + columns;
+    if (pos < cells) {
+      around.push(pos);
+    }
+
+    // Check left border
+    if (col > 0) {
+      // Left
+      around.push(target - 1);
+
+      // Top left
+      pos = target - columns - 1;
+      if (pos >= 0) {
+        around.push(pos);
+      }
+
+      // Bottom left
+      pos = target + columns - 1;
+      if (pos < cells) {
+        around.push(pos);
+      }
+    }
+
+    // Check right border
+    if (col < (columns - 1)) {
+      // Right
+      around.push(target + 1);
+
+      // Top right
+      pos = target - columns + 1;
+      if (pos >= 0) {
+        around.push(pos);
+      }
+
+      // Bottom right
+      pos = target + columns + 1;
+      if (pos < cells) {
+        around.push(pos);
+      }
+    }
+
+    // Return cells
+    return around;
+  }, [ columns, cells ]);
+
   // Check if a cell is raised
   const isRaised = useCallback((cell: number, target: number) => {
     // Current target
@@ -266,40 +323,9 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
       return false;
     }
 
-    // Look around
-    if (around) {
-      // Up and down
-      if ((cell === (target - columns)) || (cell === (target + columns))) {
-        return false;
-      }
-
-      // Get current column
-      const col = target % columns;
-
-      // Left
-      if (
-        (col > 0) &&                          // Check left border
-        ((cell === (target - 1)) ||           // Left
-        (cell === (target - columns - 1)) ||  // Top left
-        (cell === (target + columns - 1)))    // Bottom left
-      ) {
-        return false;
-      }
-
-      // Right
-      if (
-        (col < columns - 1) &&                // Check right border
-        ((cell === (target + 1)) ||           // Right
-        (cell === (target - columns + 1)) ||  // Top right
-        (cell === (target + columns + 1)))    // Bottom rght
-      ) {
-        return false;
-      }
-    }
-
     // Out of range cells
-    return true;
-  }, [ columns, around ]);
+    return !sinkAround || !cellsAround(target).some(target => target === cell);
+  }, [ sinkAround, cellsAround ]);
 
   // Sink the target cell
   const sink = useCallback((field: Cell[], target: number, raised: number) => {
@@ -308,9 +334,28 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
 
     // Empty cell
     if (cell.empty) {
-      remaining--;
-      field[target] = { data: CellData.SUNKEN, empty: true };
+      // Count mines around
+      const around = cellsAround(target);
+      const data: CellData = around.reduce((accum, cell) =>
+        field[cell].empty ? accum : accum + 1, 0
+      );
 
+      // Update board
+      field[target] = { data , empty: true };
+      remaining--;
+
+      // Sink cells around
+      if (data === CellData.SUNKEN) {
+        let newBoard = { field, remaining };
+
+        around.forEach(cell => {
+          if ((field[cell].data & CellData.SINKABLE) !== CellData.SUNKEN) {
+            newBoard = sink(newBoard.field, cell, newBoard.remaining);
+          }
+        });
+
+        return newBoard;
+      }
 
       // Win game
       if (remaining === mines) {
@@ -331,7 +376,7 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
 
     // Return the field
     return { field, remaining };
-  }, [ mines, timer ]);
+  }, [ mines, timer, cellsAround ]);
 
   // Context menu handler
   const handleContextMenu = useCallback((event: MouseEvent<HTMLDivElement>) => {
@@ -343,13 +388,14 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
     // Prevent default, get the current target and source
     event.preventDefault();
     const target = event.currentTarget;
-    const source = sunken.source.length !== 0;
+    const source = target.dataset.mwid === undefined ? `` : target.dataset.mwid;
+    const origin = source.length !== 0;
 
     // Update sunken
-    if ((source || (target.id !== `f`)) && ((sunken.buttons & MouseButtons.SUNKEN) !== MouseButtons.NONE)) {
+    if ((origin || (source !== `f`)) && ((sunken.buttons & MouseButtons.SUNKEN) !== MouseButtons.NONE)) {
       setSunken({
-        source: source ? sunken.source : target.id,
-        target: target.id,
+        source: origin ? sunken.source : source,
+        target: source,
         buttons: event.buttons
       });
     }
@@ -371,14 +417,15 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
     // Prevent default and get target
     event.preventDefault();
     const target = event.target as HTMLElement;
+    const source = target.dataset.mwid === undefined ? `` : target.dataset.mwid;
 
     // Check target and buttons
     if (
       (event.buttons === MouseButtons.SECONDARY) &&
-      ((target.id.length !== 0) && (target.id !== `f`))
+      ((source.length !== 0) && (source !== `f`))
     ) {
       // Get the current data
-      const id = parseInt(target.id);
+      const id = parseInt(source);
       const { data } = board[id];
       let newData: CellData;
 
@@ -398,8 +445,8 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
 
     // Update sunken
     setSunken({
-      source: sunken.source.length ? sunken.source : target.id,
-      target: target.id,
+      source: sunken.source.length !== 0 ? sunken.source : source,
+      target: source,
       buttons: sunken.buttons | event.buttons
     });
   }, [ sunken.source, sunken.buttons, flags, board ]);
@@ -413,27 +460,46 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
       event.preventDefault();
       const target = event.target as HTMLElement;
       const button = sunken.buttons ^ event.buttons;
+      const source = target.dataset.mwid === undefined ? `` : target.dataset.mwid;
 
       // Face target with primary button
-      if (target.id === `f`) {
+      if (source === `f`) {
         if (button === MouseButtons.PRIMARY) {
           setStatus(GameStatus.NEW);
         }
       }
 
       // Cell target
-      else if (!gameOver && (target.id.length !== 0)) {
-        // Get cell
-        const id = parseInt(target.id);
+      else if (!gameOver && (source.length !== 0)) {
+        // Check target
+        const id = parseInt(source);
         const field = [ ...board ];
         const { data, empty } = field[id];
 
         // Sink around
         if ((button === MouseButtons.AUXILIAR) || ((sunken.buttons & MouseButtons.BOTH) === MouseButtons.BOTH)) {
-          if ((data & CellData.SURROUNDED) !== CellData.SUNKEN) {
-            const newBoard = sink(field, id, button);
-            setBoard(newBoard.field);
-            setRaised(newBoard.remaining);
+          if ((data & CellData.SEVEN) !== CellData.SUNKEN) {
+            const around = cellsAround(id);
+            const flags = around.reduce((accum, cell) =>
+              field[cell].data === CellData.FLAG ? accum + 1 : accum, 0
+            );
+
+            // Sink cells
+            if (data === flags) {
+              let newBoard = { field, remaining: raised };
+
+              around.filter(cell =>
+                (field[cell].data & CellData.SINKABLE) !== CellData.SUNKEN
+              ).forEach(cell => {
+                if ((newBoard.field[cell].data & CellData.SINKABLE) !== CellData.SUNKEN) {
+                  newBoard = sink(newBoard.field, cell, newBoard.remaining);
+                }
+              });
+
+              // Update board
+              setBoard(newBoard.field);
+              setRaised(newBoard.remaining);
+            }
           }
         }
 
@@ -445,7 +511,6 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
           if (status === GameStatus.NEW) {
             // Reallocate mine
             if (!empty) {
-              const cells = rows * columns;
               let dest = Math.trunc(Math.random() * cells);
               field[id] = initialCell;
 
@@ -461,7 +526,7 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
             timer.setRunning(true);
           }
 
-          // Sink cell
+          // Sink cell and update board
           const newBoard = sink(field, id, raised);
           setBoard(newBoard.field);
           setRaised(newBoard.remaining);
@@ -488,7 +553,7 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
     return () => {
       document.removeEventListener(`mouseup`, handleMouseUp);
     };
-  }, [ rows, columns, sunken, status, gameOver, raised, board, timer, sink ]);
+  }, [ rows, columns, cells, sunken, status, gameOver, raised, board, timer, cellsAround, sink ]);
 
   // Fix game
   useEffect(() => {
@@ -510,7 +575,6 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
     }
 
     // Create empty board
-    const cells = rows * columns;
     const board = Array<Cell>(cells).fill(initialCell);
     let remaining = mines;
 
@@ -530,7 +594,7 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
     setTime(0);
     setRaised(rows * columns);
     timer.setRunning(false);
-  }, [ status, rows, columns, mines, timer ]);
+  }, [ status, rows, columns, cells, mines, timer ]);
 
   // Handle flags change
   useEffect(() => {
@@ -560,7 +624,7 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
 
           {/* LCDs and face */}
           <LCD number={mines - flags} sprite={style.sprite} styles={{ container: style.mines, corners: style.corners1, digit: style.digit }} />
-          <button id="f" type="button" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className={`${style.sprite} face ${faceClass} cursor-default focus:outline-none`} style={style.face} />
+          <button data-mwid="f" type="button" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className={`${style.sprite} face ${faceClass} cursor-default focus:outline-none`} style={style.face} />
           <LCD number={time} sprite={style.sprite} styles={{ container: style.time, corners: style.corners1, digit: style.digit }} />
         </div>
 
@@ -577,7 +641,7 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
 
             switch (cell.data) {
               case CellData.CLEAN:  cellClass = mine ? `cell-mine` : win ? `cell-flag` : raised ? `cell-clean` : `cell-0`; break;
-              case CellData.FLAG:   cellClass = !gameOver || mine ? `cell-flag` : `cell-mine-wrong`; break;
+              case CellData.FLAG:   cellClass = exploded && cell.empty ? `cell-mine-wrong` : `cell-flag`; break;
               case CellData.MARK:   cellClass = raised ? `cell-mark` : `cell-mark-sunken`; break;
               case CellData.SUNKEN: cellClass = mine ? `cell-mine-exploded` : `cell-0`; break;
               case CellData.ONE:    cellClass = `cell-1`; break;
@@ -591,11 +655,10 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
               default: cellClass = `cell-clean`;
             }
 
-            return <button key={i} id={i.toString()} type="button" onMouseEnter={handleMouseEnter} className={`${style.sprite} ${cellClass} cursor-default focus:outline-none`} style={style.cell} />;
+            return <button key={i} data-mwid={i.toString()} type="button" onMouseEnter={handleMouseEnter} className={`${style.sprite} ${cellClass} cursor-default focus:outline-none`} style={style.cell} />;
           })}
         </div>
       </div>
     </div>
   );
 };
-
