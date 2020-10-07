@@ -29,7 +29,7 @@ const digitClass = (digit: number): string => {
     case 7: return `digit-7`;
     case 8: return `digit-8`;
     case 9: return `digit-9`;
-    default: return ``;
+    default: return `digit-minus`;
   }
 };
 

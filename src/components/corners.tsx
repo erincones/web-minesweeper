@@ -28,7 +28,7 @@ export const Corners = ({ type, sprite = `sprite`, style }: Props): JSX.Element 
 
   // Corners styles
   const styles = useMemo(() => {
-    const position = -style.width;
+    const position = -(style.width as number);
 
     return {
       topRight: {

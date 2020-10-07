@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, MouseEvent, useEffect, CSSProperties } from "react";
+import React, { useState, useMemo, useCallback, useEffect, MouseEvent, CSSProperties } from "react";
 
 import { useInterval } from "../hooks/interval";
 
@@ -17,6 +17,7 @@ export interface Props {
   readonly onFlagsChange?: (flags: number) => void;
   readonly onTimeChange?: (time: number) => void;
   readonly onStatusChange?: (status: GameStatus) => void;
+  readonly className?: string;
 }
 
 /**
@@ -146,7 +147,7 @@ const initialCell: Cell = { data: CellData.CLEAN, empty: true };
  *
  * @param props Minesweeper properties
  */
-export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, onTimeChange = noop, onStatusChange = noop }: Props): JSX.Element => {
+export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, onTimeChange = noop, onStatusChange = noop, className = `` }: Props): JSX.Element => {
   const [ { rows, columns, mines }, setGame ] = useState<Game>(game);
   const [ sunken, setSunken ] = useState<Sunken>(initialSunken);
   const [ status, setStatus ] = useState(GameStatus.NEW);
@@ -201,7 +202,7 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
     const backgroundSize = `${101 * scale}px ${116 * scale}px`;
 
     return {
-      sprite: scale > 1 ? `sprite pixelated` : `sprite`,
+      sprite: scale < 1 ? `sprite` : `sprite pixelated`,
       container: {
         borderWidth: 1 * scale
       },
@@ -614,7 +615,7 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
 
   // Return the minesweeper game
   return (
-    <div onMouseDown={handleMouseDown} onContextMenu={handleContextMenu} className="inline-block border-black" style={style.container}>
+    <div onMouseDown={handleMouseDown} onContextMenu={handleContextMenu} className={`${className} inline-block border-black`} style={style.container}>
       <div className="relative bg-silver border-raised" style={style.game}>
         <Corners type="raised" sprite={style.sprite} style={style.corners3} />
 
