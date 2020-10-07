@@ -1,2 +1,12 @@
 // Base styles
 @tailwind base;
+
+
+// Fill vertical space
+
+html,
+body,
+#___gatsby,
+#gatsby-focus-wrapper {
+  @apply h-full;
+}
