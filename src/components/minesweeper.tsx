@@ -5,6 +5,7 @@ import { useInterval } from "../hooks/interval";
 import { Corners } from "./corners";
 import { LCD } from "./lcd";
 
+import { initialSunken, MouseButtons, Sunken } from "../utils/sunken";
 import { noop } from "../utils/helpers";
 
 
@@ -27,15 +28,6 @@ export interface Game {
   readonly rows: number;
   readonly columns: number;
   readonly mines: number;
-}
-
-/**
- * Sunken interface
- */
-interface Sunken {
-  readonly source: string;
-  readonly target: string;
-  readonly buttons: number;
 }
 
 /**
@@ -96,19 +88,6 @@ enum CellData {
   SINKABLE = 80
 }
 
-/**
- * Mouse button enumeration
- */
-enum MouseButtons {
-  NONE = 0,
-  PRIMARY = 1,
-  SECONDARY = 2,
-  BOTH = 3,
-  AUXILIAR = 4,
-  SUNKEN = 5,
-  ANY = 7
-}
-
 
 /**
  * 8x8 board with 10 mines
@@ -129,12 +108,6 @@ export const intermediate: Game = { rows: 16, columns: 16, mines: 40 };
  * 16x30 board with 40 mines
  */
 export const expert: Game = { rows: 16, columns: 30, mines: 99 };
-
-
-/**
- * Initial sunken state
- */
-const initialSunken: Sunken = { source: ``, target: ``, buttons: MouseButtons.NONE };
 
 /**
  * Inicial cell state

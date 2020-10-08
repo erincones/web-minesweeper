@@ -3,6 +3,8 @@ import React, { useState, useCallback, useEffect } from "react";
 import { SEO } from "../components/seo";
 import { Minesweeper, beginner, intermediate, expert, Game, GameStatus } from "../components/minesweeper";
 
+import { initialSunken, MouseButtons, Sunken } from "../utils/sunken";
+
 import icon from "../images/icon.png";
 
 
@@ -10,6 +12,7 @@ import icon from "../images/icon.png";
  * Index page
  */
 const Index = (): JSX.Element => {
+  const [ sunken, setSunken ] = useState<Sunken>(initialSunken);
   const [ scale, setScale ] = useState(100);
   const [ game, setGame ] = useState<Game>(beginner);
   const [ status, setStatus ] = useState<GameStatus>(GameStatus.NEW);
@@ -42,9 +45,39 @@ const Index = (): JSX.Element => {
       </header>
 
       {/* Menubar */}
-      <div className="bg-white border-b border-black">
-        <button type="button" className="inline-block font-bold focus:outline-none cursor-default px-2">Game</button>
-        <button type="button" className="inline-block font-bold focus:outline-none cursor-default px-2">Help</button>
+      <div className="bg-white text-sm font-bold whitespace-no-wrap border-b border-black">
+        {/* Game menu */}
+        <div className="relative inline-block">
+          <div>
+            <button type="button" className="font-bold focus:outline-none cursor-default px-2">Game</button>
+            <div className="hidden absolute z-10 bg-white border border-black">
+              <button type="button" className="block font-bold focus:outline-none cursor-default px-2">New</button>
+              <div className="border-b border-black my-1" />
+              <button type="button" className="block font-bold focus:outline-none cursor-default px-2">Beginner</button>
+              <button type="button" className="block font-bold focus:outline-none cursor-default px-2">Intermediate</button>
+              <button type="button" className="block font-bold focus:outline-none cursor-default px-2">Expert</button>
+              <button type="button" className="block font-bold focus:outline-none cursor-default px-2">Custom...</button>
+              <div className="border-b border-black my-1" />
+              <button type="button" className="block font-bold focus:outline-none cursor-default px-2">Marks (?)</button>
+              <button type="button" className="block font-bold focus:outline-none cursor-default px-2">Scale...</button>
+              <div className="border-b border-black my-1" />
+              <button type="button" className="block font-bold focus:outline-none cursor-default px-2">Best Times...</button>
+            </div>
+          </div>
+        </div>
+
+        {/* Help menu */}
+        <div className="relative inline-block">
+          <div>
+            <button type="button" className="font-bold focus:outline-none cursor-default px-2">Help</button>
+            <div className="hidden absolute z-10 bg-white border border-black">
+              <button type="button" className="block font-bold focus:outline-none cursor-default px-2">How to play</button>
+              <button type="button" className="block font-bold focus:outline-none cursor-default px-2">Controls</button>
+              <div className="border-b border-black my-1" />
+              <button type="button" className="block font-bold focus:outline-none cursor-default px-2">About</button>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Game */}

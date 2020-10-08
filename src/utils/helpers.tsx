@@ -1,4 +1,4 @@
 /**
  * No operation function
  */
-export const noop = (): () => void => { return; };
+export const noop = (): void => { return; };
