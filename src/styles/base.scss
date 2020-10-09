@@ -7,6 +7,6 @@
 html,
 body,
 #___gatsby,
-#gatsby-focus-wrapper {
+#___gatsby > div:first-child {
   @apply h-full;
 }

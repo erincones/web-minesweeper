@@ -1,23 +1,12 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 
 import { SEO } from "../components/seo";
-import { Minesweeper, beginner, intermediate, expert, Game, GameStatus } from "../components/minesweeper";
+import { Minesweeper, beginner, intermediate, expert, Game, Level, GameStatus } from "../components/minesweeper";
 import { MenuBar, MenuEntry } from "../components/menu-bar";
 
 import { noop } from "../utils/helpers";
 
 import icon from "../images/icon.png";
-
-
-/**
- * Game level
- */
-enum Level {
-  BEGINNER,
-  INTERMEDIATE,
-  EXPERT,
-  CUSTOM
-}
 
 
 /**

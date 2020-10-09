@@ -32,6 +32,16 @@ export interface Game {
 }
 
 /**
+ * Game level
+ */
+export enum Level {
+  BEGINNER,
+  INTERMEDIATE,
+  EXPERT,
+  CUSTOM
+}
+
+/**
  * Cell interface
  */
 interface Cell {
@@ -621,49 +631,51 @@ export const Minesweeper = ({ game = beginner, marks = true, scale = 1, onFlagsC
 
   // Return the minesweeper game
   return (
-    <div onMouseDown={handleMouseDown} onContextMenu={handleContextMenu} className={`${className} inline-block border-black`} style={style.container}>
-      <div className="relative bg-silver border-raised" style={style.game}>
-        <Corners type="raised" sprite={style.sprite} style={style.corners3} />
+    <div className={`${className} inline-block`}>
+      <div className="inline-block border-black" style={style.container}>
+        <div onMouseDown={handleMouseDown} onContextMenu={handleContextMenu} className="relative bg-silver border-raised" style={style.game}>
+          <Corners type="raised" sprite={style.sprite} style={style.corners3} />
 
-        {/* Header */}
-        <div className="relative flex justify-between border-sunken" style={style.header}>
-          <Corners type="sunken" sprite={style.sprite} style={style.corners2} />
+          {/* Header */}
+          <div className="relative flex justify-between border-sunken" style={style.header}>
+            <Corners type="sunken" sprite={style.sprite} style={style.corners2} />
 
-          {/* LCDs and face */}
-          <LCD number={mines - flags} sprite={style.sprite} styles={{ container: style.mines, corners: style.corners1, digit: style.digit }} />
-          <button data-mwid="f" type="button" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className={`${style.sprite} face ${faceClass} cursor-default focus:outline-none`} style={style.face} />
-          <LCD number={time} sprite={style.sprite} styles={{ container: style.time, corners: style.corners1, digit: style.digit }} />
-        </div>
+            {/* LCDs and face */}
+            <LCD number={mines - flags} sprite={style.sprite} styles={{ container: style.mines, corners: style.corners1, digit: style.digit }} />
+            <button data-mwid="f" type="button" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className={`${style.sprite} face ${faceClass} cursor-default focus:outline-none`} style={style.face} />
+            <LCD number={time} sprite={style.sprite} styles={{ container: style.time, corners: style.corners1, digit: style.digit }} />
+          </div>
 
 
-        {/* Board */}
-        <div onMouseLeave={handleMouseLeave} className="relative flex flex-wrap border-sunken" style={style.board}>
-          <Corners type="sunken" sprite={style.sprite} style={style.corners3} />
+          {/* Board */}
+          <div onMouseLeave={handleMouseLeave} className="relative flex flex-wrap border-sunken" style={style.board}>
+            <Corners type="sunken" sprite={style.sprite} style={style.corners3} />
 
-          {/* Cells */}
-          {board.map((cell, i) => {
-            const mine = exploded && !cell.empty;
-            const raised = gameOver || sourceFace || buttonsRaised || isRaised(i, target);
-            let cellClass: string;
+            {/* Cells */}
+            {board.map((cell, i) => {
+              const mine = exploded && !cell.empty;
+              const raised = gameOver || sourceFace || buttonsRaised || isRaised(i, target);
+              let cellClass: string;
 
-            switch (cell.data) {
-              case CellData.CLEAN:  cellClass = mine ? `cell-mine` : win ? `cell-flag` : raised ? `cell-clean` : `cell-0`; break;
-              case CellData.FLAG:   cellClass = exploded && cell.empty ? `cell-mine-wrong` : `cell-flag`; break;
-              case CellData.MARK:   cellClass = raised ? `cell-mark` : `cell-mark-sunken`; break;
-              case CellData.SUNKEN: cellClass = mine ? `cell-mine-exploded` : `cell-0`; break;
-              case CellData.ONE:    cellClass = `cell-1`; break;
-              case CellData.TWO:    cellClass = `cell-2`; break;
-              case CellData.THREE:  cellClass = `cell-3`; break;
-              case CellData.FOUR:   cellClass = `cell-4`; break;
-              case CellData.FIVE:   cellClass = `cell-5`; break;
-              case CellData.SIX:    cellClass = `cell-6`; break;
-              case CellData.SEVEN:  cellClass = `cell-7`; break;
-              case CellData.EIGHT:  cellClass = `cell-8`; break;
-              default: cellClass = `cell-clean`;
-            }
+              switch (cell.data) {
+                case CellData.CLEAN:  cellClass = mine ? `cell-mine` : win ? `cell-flag` : raised ? `cell-clean` : `cell-0`; break;
+                case CellData.FLAG:   cellClass = exploded && cell.empty ? `cell-mine-wrong` : `cell-flag`; break;
+                case CellData.MARK:   cellClass = raised ? `cell-mark` : `cell-mark-sunken`; break;
+                case CellData.SUNKEN: cellClass = mine ? `cell-mine-exploded` : `cell-0`; break;
+                case CellData.ONE:    cellClass = `cell-1`; break;
+                case CellData.TWO:    cellClass = `cell-2`; break;
+                case CellData.THREE:  cellClass = `cell-3`; break;
+                case CellData.FOUR:   cellClass = `cell-4`; break;
+                case CellData.FIVE:   cellClass = `cell-5`; break;
+                case CellData.SIX:    cellClass = `cell-6`; break;
+                case CellData.SEVEN:  cellClass = `cell-7`; break;
+                case CellData.EIGHT:  cellClass = `cell-8`; break;
+                default: cellClass = `cell-clean`;
+              }
 
-            return <button key={i} data-mwid={i.toString()} type="button" onMouseEnter={handleMouseEnter} className={`${style.sprite} ${cellClass} cursor-default focus:outline-none`} style={style.cell} />;
-          })}
+              return <button key={i} data-mwid={i.toString()} type="button" onMouseEnter={handleMouseEnter} className={`${style.sprite} ${cellClass} cursor-default focus:outline-none`} style={style.cell} />;
+            })}
+          </div>
         </div>
       </div>
     </div>
