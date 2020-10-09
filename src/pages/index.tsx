@@ -19,6 +19,7 @@ const Index = (): JSX.Element => {
   const [ marks, setMarks ] = useState(true);
   const [ time, setTime ] = useState(0);
   const [ scale, setScale ] = useState(100);
+  const [ statusBar, setStatusBar ] = useState(true);
 
 
   // New game callback
@@ -39,6 +40,11 @@ const Index = (): JSX.Element => {
   // Toogle marks callback
   const toggleMarks = useCallback(() => {
     setMarks(marks => !marks);
+  }, []);
+
+  // Toggle status bar
+  const toggleStatusBar = useCallback(() => {
+    setStatusBar(statusBar => !statusBar);
   }, []);
 
 
@@ -84,6 +90,11 @@ const Index = (): JSX.Element => {
         },
         `separator`,
         {
+          label: `Status Bar`,
+          callback: toggleStatusBar,
+          checked: statusBar
+        },
+        {
           label: `Best Times...`,
           callback: noop
         }
@@ -107,7 +118,7 @@ const Index = (): JSX.Element => {
         }
       ]
     }
-  ]), [ level, marks, newGame, changeLevel, toggleMarks ]);
+  ]), [ level, marks, statusBar, newGame, changeLevel, toggleMarks, toggleStatusBar ]);
 
 
   // Game status handler
@@ -141,10 +152,12 @@ const Index = (): JSX.Element => {
         <Minesweeper game={game} marks={marks} scale={scale / 100} onStatusChange={handleStusChange} onTimeChange={handleTimeChange} className="m-6" />
       </div>
 
-      {/* Footer */}
-      <footer className="bg-white text-right text-sm font-bold border-t border-black cursor-default px-2 w-full">
-        Rows: {game.rows}&ensp;Columns: {game.columns}&ensp;Mines: {game.mines}&ensp;Scale: {scale}%
-      </footer>
+      {/* Status bar */}
+      {statusBar &&
+        <footer className="bg-white text-right text-sm font-bold border-t border-black cursor-default px-2 w-full">
+          Rows: {game.rows}&ensp;Columns: {game.columns}&ensp;Mines: {game.mines}&ensp;Scale: {scale}%
+        </footer>
+      }
     </div>
   );
 };

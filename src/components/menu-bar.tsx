@@ -37,7 +37,7 @@ const Separator = () => <div data-mbtype="separator" className="border-b border-
 /**
  * Check mark component
  */
-const CheckMark = () => <span data-mbtype="checkmark" className="inline-block w-4 -ml-4">&#x2713;</span>;
+const CheckMark = () => <span data-mbtype="checkmark" className="inline-block text-center w-4 -ml-4">&#x2713;</span>;
 
 
 /**
