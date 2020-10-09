@@ -12,8 +12,9 @@ import { noop } from "../utils/helpers";
 /**
  * Minesweeper properties interface
  */
-export interface Props {
+interface Props {
   readonly game?: Game;
+  readonly marks?: boolean;
   readonly scale?: number;
   readonly onFlagsChange?: (flags: number) => void;
   readonly onTimeChange?: (time: number) => void;
@@ -120,7 +121,7 @@ const initialCell: Cell = { data: CellData.CLEAN, empty: true };
  *
  * @param props Minesweeper properties
  */
-export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, onTimeChange = noop, onStatusChange = noop, className = `` }: Props): JSX.Element => {
+export const Minesweeper = ({ game = beginner, marks = true, scale = 1, onFlagsChange = noop, onTimeChange = noop, onStatusChange = noop, className = `` }: Props): JSX.Element => {
   const [ { rows, columns, mines }, setGame ] = useState<Game>(game);
   const [ sunken, setSunken ] = useState<Sunken>(initialSunken);
   const [ status, setStatus ] = useState(GameStatus.NEW);
@@ -154,6 +155,7 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
 
   // Sunken around target
   const sinkAround = ((sunken.buttons & MouseButtons.AUXILIAR) === MouseButtons.AUXILIAR) || ((sunken.buttons & MouseButtons.BOTH) === MouseButtons.BOTH);
+
 
   // Face class
   const faceClass = useMemo(() => {
@@ -365,8 +367,9 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
     const source = target.dataset.mwid === undefined ? `` : target.dataset.mwid;
     const origin = source.length !== 0;
 
-    // Update sunken
+    // Update focus and sunken
     if ((origin || (source !== `f`)) && ((sunken.buttons & MouseButtons.SUNKEN) !== MouseButtons.NONE)) {
+      target.focus();
       setSunken({
         source: origin ? sunken.source : source,
         target: source,
@@ -378,6 +381,12 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
   // Mouse leave handler
   const handleMouseLeave = useCallback((event: MouseEvent<HTMLElement>) => {
     if (sunken.source.length !== 0) {
+      // Blur active element
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+
+      // Update sunken
       setSunken({
         source: sunken.source,
         target: ``,
@@ -393,6 +402,16 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
     const target = event.target as HTMLElement;
     const source = target.dataset.mwid === undefined ? `` : target.dataset.mwid;
 
+    // Blur active element
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    // Focus target
+    if (source.length !== 0) {
+      target.focus();
+    }
+
     // Check target and buttons
     if (
       (event.buttons === MouseButtons.SECONDARY) &&
@@ -406,7 +425,7 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
       // Get the new data and update flags
       switch (data) {
         case CellData.CLEAN: newData = CellData.FLAG; setFlags(flags + 1); break;
-        case CellData.FLAG:  newData = CellData.MARK; setFlags(flags - 1); break;
+        case CellData.FLAG:  newData = marks ? CellData.MARK : CellData.CLEAN; setFlags(flags - 1); break;
         case CellData.MARK:  newData = CellData.CLEAN; break;
         default: newData = data;
       }
@@ -423,7 +442,7 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
       target: source,
       buttons: sunken.buttons | event.buttons
     });
-  }, [ sunken.source, sunken.buttons, flags, board ]);
+  }, [ sunken.source, sunken.buttons, flags, marks, board ]);
 
 
   // Global mouse up handler
@@ -432,14 +451,22 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
     const handleMouseUp = (event: globalThis.MouseEvent) => {
       // Prevent default and get target
       event.preventDefault();
-      const target = event.target as HTMLElement;
+      const target = event.target;
       const button = sunken.buttons ^ event.buttons;
+
+      // Check target
+      if (!(target instanceof HTMLElement)) {
+        return;
+      }
+
+      // Get source
       const source = target.dataset.mwid === undefined ? `` : target.dataset.mwid;
 
       // Face target with primary button
       if (source === `f`) {
         if (button === MouseButtons.PRIMARY) {
           setStatus(GameStatus.NEW);
+          setRaised(NaN);
         }
       }
 
@@ -507,6 +534,11 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
         }
       }
 
+      // Blur active element
+      else if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+
       // Update sunken
       setSunken(sunken => event.buttons === MouseButtons.NONE ? {
         source: ``,
@@ -539,12 +571,13 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
     // Reset game
     setGame({ rows, columns, mines });
     setStatus(GameStatus.NEW);
+    setRaised(NaN);
   }, [ game ]);
 
   // New game
   useEffect(() => {
     // Check new game
-    if (status !== GameStatus.NEW) {
+    if ((status !== GameStatus.NEW) && !isNaN(raised)) {
       return;
     }
 
@@ -566,9 +599,9 @@ export const Minesweeper = ({ game = beginner, scale = 1, onFlagsChange = noop, 
     setBoard(board);
     setFlags(0);
     setTime(0);
-    setRaised(rows * columns);
+    setRaised(cells);
     timer.setRunning(false);
-  }, [ status, rows, columns, cells, mines, timer ]);
+  }, [ status, rows, columns, cells, mines, raised, timer ]);
 
   // Handle flags change
   useEffect(() => {
