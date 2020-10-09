@@ -148,8 +148,10 @@ const Index = (): JSX.Element => {
       <MenuBar entries={menuEntries} />
 
       {/* Game */}
-      <div className="flex-grow overflow-x-auto">
-        <Minesweeper game={game} marks={marks} scale={scale / 100} onStatusChange={handleStusChange} onTimeChange={handleTimeChange} className="m-6" />
+      <div className="box-border flex-grow overflow-x-auto">
+        <div className="m-6">
+          <Minesweeper game={game} marks={marks} scale={scale / 100} onStatusChange={handleStusChange} onTimeChange={handleTimeChange} />
+        </div>
       </div>
 
       {/* Status bar */}
