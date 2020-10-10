@@ -13,7 +13,7 @@ import { noop } from "../utils/helpers";
  * Minesweeper properties interface
  */
 interface Props {
-  readonly game?: Game;
+  readonly game?: Game | Level.BEGINNER | Level.INTERMEDIATE | Level.INTERMEDIATE;
   readonly marks?: boolean;
   readonly scale?: number;
   readonly onFlagsChange?: (flags: number) => void;
@@ -126,12 +126,27 @@ const initialCell: Cell = { data: CellData.CLEAN, empty: true };
 
 
 /**
+ * Transform level and get game
+ *
+ * @param game Game or level
+ */
+const getGame = (game: Props["game"]) => {
+  switch (game) {
+    case Level.BEGINNER: return beginner;
+    case Level.INTERMEDIATE: return intermediate;
+    case Level.EXPERT: return expert;
+    default: return game === undefined ? beginner : game;
+  }
+};
+
+
+/**
  * Minesweeper component
  *
  * @param props Minesweeper properties
  */
-export const Minesweeper = ({ game = beginner, marks = true, scale = 1, onFlagsChange = noop, onTimeChange = noop, onStatusChange = noop }: Props): JSX.Element => {
-  const [ { rows, columns, mines }, setGame ] = useState<Game>(game);
+export const Minesweeper = ({ game, marks = true, scale = 1, onFlagsChange = noop, onTimeChange = noop, onStatusChange = noop }: Props): JSX.Element => {
+  const [ { rows, columns, mines }, setGame ] = useState<Game>(getGame(game));
   const [ sunken, setSunken ] = useState<Sunken>(initialSunken);
   const [ status, setStatus ] = useState(GameStatus.NEW);
   const [ flags, setFlags ] = useState(0);
@@ -458,18 +473,22 @@ export const Minesweeper = ({ game = beginner, marks = true, scale = 1, onFlagsC
   useEffect(() => {
     // Mouse up handler
     const handleMouseUp = (event: globalThis.MouseEvent) => {
-      // Prevent default and get target
-      event.preventDefault();
+      // Get target
       const target = event.target;
-      const button = sunken.buttons ^ event.buttons;
 
       // Check target
       if (!(target instanceof HTMLElement)) {
         return;
       }
 
-      // Get source
+      // Get source and button
       const source = target.dataset.mwid === undefined ? `` : target.dataset.mwid;
+      const button = sunken.buttons ^ event.buttons;
+
+      // Prevent default
+      if (source.length !== 0) {
+        event.preventDefault();
+      }
 
       // Face target with primary button
       if (source === `f`) {
@@ -543,11 +562,6 @@ export const Minesweeper = ({ game = beginner, marks = true, scale = 1, onFlagsC
         }
       }
 
-      // Blur active element
-      else if (document.activeElement instanceof HTMLElement) {
-        document.activeElement.blur();
-      }
-
       // Update sunken
       setSunken(sunken => event.buttons === MouseButtons.NONE ? {
         source: ``,
@@ -572,10 +586,12 @@ export const Minesweeper = ({ game = beginner, marks = true, scale = 1, onFlagsC
 
   // Fix game
   useEffect(() => {
+    const newGame = getGame(game);
+
     // Clamp values
-    const rows = Math. min(Math.max(game.rows, 8), 24);
-    const columns = Math.min(Math.max(game.columns, 8), 30);
-    const mines = Math.min(Math.max(game.mines, 10), (rows - 1) * (columns - 1));
+    const rows = isNaN(newGame.rows) ? 8 : Math. min(Math.max(newGame.rows, 8), 24);
+    const columns = isNaN(newGame.columns) ? 8 : Math.min(Math.max(newGame.columns, 8), 30);
+    const mines = isNaN(newGame.mines) ? 10 : Math.min(Math.max(newGame.mines, 10), (rows - 1) * (columns - 1));
 
     // Reset game
     setGame({ rows, columns, mines });

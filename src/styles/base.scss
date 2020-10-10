@@ -1,12 +1,2 @@
 // Base styles
 @tailwind base;
-
-
-// Fill vertical space
-
-html,
-body,
-#___gatsby,
-#___gatsby > div:first-child {
-  @apply h-full;
-}

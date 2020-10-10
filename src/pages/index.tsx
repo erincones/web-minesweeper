@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useCallback } from "react";
 
 import { SEO } from "../components/seo";
-import { Minesweeper, beginner, intermediate, expert, Game, Level, GameStatus } from "../components/minesweeper";
 import { MenuBar, MenuEntry } from "../components/menu-bar";
+import { Minesweeper, beginner, intermediate, expert, Game, Level, GameStatus } from "../components/minesweeper";
 
 import { noop } from "../utils/helpers";
 
@@ -33,7 +33,7 @@ const Index = (): JSX.Element => {
       case Level.BEGINNER:     return () => { setLevel(level); setGame(beginner); };
       case Level.INTERMEDIATE: return () => { setLevel(level); setGame(intermediate); };
       case Level.EXPERT:       return () => { setLevel(level); setGame(expert); };
-      default: return () => { setLevel(Level.EXPERT); };
+      default: return () => { setLevel(Level.CUSTOM); };
     }
   }, []);
 
@@ -75,7 +75,7 @@ const Index = (): JSX.Element => {
         },
         {
           label: `Custom...`,
-          callback: noop,
+          callback: changeLevel(Level.CUSTOM),
           checked: level === Level.CUSTOM
         },
         `separator`,
@@ -134,7 +134,7 @@ const Index = (): JSX.Element => {
 
   // Return page
   return (
-    <div className="flex flex-col bg-teal w-full h-full">
+    <div className="flex flex-col fixed bg-teal w-full h-full">
       {/* SEO component */}
       <SEO />
 
@@ -155,11 +155,11 @@ const Index = (): JSX.Element => {
       </div>
 
       {/* Status bar */}
-      {statusBar &&
+      {statusBar && (
         <footer className="bg-white text-right text-sm font-bold border-t border-black cursor-default px-2 w-full">
           Rows: {game.rows}&ensp;Columns: {game.columns}&ensp;Mines: {game.mines}&ensp;Scale: {scale}%
         </footer>
-      }
+      )}
     </div>
   );
 };

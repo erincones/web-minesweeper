@@ -182,15 +182,21 @@ export const MenuBar = ({ entries }: Props): JSX.Element => {
   // Global mouse down handler
   useEffect(() => {
     const handleMouseDown = (event: globalThis.MouseEvent) => {
-      // Prevent default and get target
-      event.preventDefault();
-      const target = event.target as HTMLElement;
+      // Get target
+      const target = event.target;
+
+      // Check target
+      if (!(target instanceof HTMLElement)) {
+        return;
+      }
+
+      // Get source and id
       const source = target.dataset.mbid === undefined ? `` : target.dataset.mbid;
       const id = parseInt(source);
 
-      // Blur active element
-      if (document.activeElement instanceof HTMLElement) {
-        document.activeElement.blur();
+      // Prevent default
+      if (source.length !== 0) {
+        event.preventDefault();
       }
 
       // Check type
@@ -270,24 +276,26 @@ export const MenuBar = ({ entries }: Props): JSX.Element => {
   // Global mouse up handler
   useEffect(() => {
     const handleMouseUp = (event: globalThis.MouseEvent) => {
-      // Prevent default and get target
-      event.preventDefault();
+      // Get target
       const target = event.target;
-      const button = sunken.buttons ^ event.buttons;
 
       // Check target
       if (!(target instanceof HTMLElement)) {
         return;
       }
 
-      // Blur active element
-      if (document.activeElement instanceof HTMLElement) {
-        document.activeElement.blur();
+      // Get source and button
+      const source = target.dataset.mbtype === undefined ? `` : target.dataset.mbtype;
+      const button = sunken.buttons ^ event.buttons;
+
+      // Prevent default
+      if (source.length !== 0) {
+        event.preventDefault();
       }
 
       // Check type
       if (button === MouseButtons.PRIMARY) {
-        switch (target.dataset.mbtype) {
+        switch (source) {
           // Menu entry
           case `entry`:
             // Close current entry or focus first item
@@ -361,7 +369,7 @@ export const MenuBar = ({ entries }: Props): JSX.Element => {
             </button>
 
             {/* Entry items */}
-            {drop &&
+            {drop && (
               <div data-mbtype="dropdown" className="absolute z-10 bg-white border border-black">
                 {items.map((item, i) => (
                   item === `separator` ?
@@ -375,7 +383,7 @@ export const MenuBar = ({ entries }: Props): JSX.Element => {
                     </button>
                 ))}
               </div>
-            }
+            )}
           </div>
         );
       })}

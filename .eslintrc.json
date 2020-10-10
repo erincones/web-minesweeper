@@ -19,8 +19,9 @@
   ],
   "rules": {
     "semi": "error",
+    "quotes": "off",
     "indent": [ "error", 2, { "SwitchCase": 1 } ],
-    "quotes": [ "error", "backtick", { "avoidEscape": true } ],
+    "@typescript-eslint/quotes": [ "error", "backtick" ],
     "react/jsx-filename-extension": [ 1, { "extensions": [ ".js", ".jsx", ".tsx" ] } ]
   },
   "overrides": [
