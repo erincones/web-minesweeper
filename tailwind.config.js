@@ -1,5 +1,9 @@
 const { colors } = require(`tailwindcss/defaultTheme`);
 
+const outline = require(`./tailwindcss-plugins/outline`);
+const imageRendering = require(`./tailwindcss-plugins/image-rendering`);
+
+
 module.exports = {
   future: {
     removeDeprecatedGapUtilities: true,
@@ -17,6 +21,9 @@ module.exports = {
   },
   theme: {
     extend: {
+      spacing: {
+        "2px": `2px`
+      },
       colors: {
         maroon: `#800000`,
         green: { ...colors.green, default: `#008000` },
@@ -35,8 +42,16 @@ module.exports = {
       }
     }
   },
-  variants: {},
-  plugins: [],
+  variants: {
+    outline: [ `responsive`, `hover`, `focus`, `active` ],
+    borderColor: [ `responsive`, `hover`, `focus`, `active`],
+    borderWidth: [ `responsive`, `focus`, `active` ],
+    margin: [ `responsive`, `active` ]
+  },
+  plugins: [
+    outline,
+    imageRendering
+  ],
   corePlugins: {
     animation: false
   }

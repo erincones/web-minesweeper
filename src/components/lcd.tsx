@@ -7,7 +7,7 @@ import { Corners } from "./corners";
  */
 interface Props {
   readonly number: number;
-  readonly sprite?: `sprite` | `sprite pixelated`;
+  readonly sprite?: `sprite` | `sprite rendering-pixelated`;
   readonly styles: {
     readonly container: CSSProperties;
     readonly corners: CSSProperties;

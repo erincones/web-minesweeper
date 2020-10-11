@@ -6,7 +6,7 @@ import React, { CSSProperties, useMemo } from "react";
  */
 interface Props {
   readonly type: `raised` | `sunken` | `flat`;
-  readonly sprite?: `sprite` | `sprite pixelated`;
+  readonly sprite?: `sprite` | `sprite rendering-pixelated`;
   readonly style: CSSProperties;
 }
 

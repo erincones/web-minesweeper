@@ -52,7 +52,7 @@ interface Cell {
  * Custom style interface
  */
 interface Style {
-  readonly sprite: `sprite pixelated` | `sprite`;
+  readonly sprite: `sprite` | `sprite rendering-pixelated`;
   container: CSSProperties;
   corners1: CSSProperties;
   corners2: CSSProperties;
@@ -201,7 +201,7 @@ export const Minesweeper = ({ game, marks = true, scale = 1, onFlagsChange = noo
     const backgroundSize = `${101 * scale}px ${116 * scale}px`;
 
     return {
-      sprite: scale < 1 ? `sprite` : `sprite pixelated`,
+      sprite: scale < 1 ? `sprite` : `sprite rendering-pixelated`,
       container: {
         borderWidth: 1 * scale
       },
@@ -656,7 +656,7 @@ export const Minesweeper = ({ game, marks = true, scale = 1, onFlagsChange = noo
 
           {/* LCDs and face */}
           <LCD number={mines - flags} sprite={style.sprite} styles={{ container: style.mines, corners: style.corners1, digit: style.digit }} />
-          <button data-mwid="f" type="button" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className={`${style.sprite} face ${faceClass} cursor-default focus:outline-none`} style={style.face} />
+          <button data-mwid="f" type="button" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className={`${style.sprite} ${faceClass} cursor-default focus:outline-none`} style={style.face} />
           <LCD number={time} sprite={style.sprite} styles={{ container: style.time, corners: style.corners1, digit: style.digit }} />
         </div>
 
