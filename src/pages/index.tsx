@@ -4,6 +4,8 @@ import { SEO } from "../components/seo";
 import { MenuBar, MenuEntry } from "../components/menu-bar";
 import { Minesweeper, beginner, intermediate, expert, Game, Level, GameStatus } from "../components/minesweeper";
 
+import { useCustomize } from "../hooks/customize";
+
 import { noop } from "../utils/helpers";
 
 import icon from "../images/icon.png";
@@ -21,6 +23,8 @@ const Index = (): JSX.Element => {
   const [ scale, setScale ] = useState(100);
   const [ statusBar, setStatusBar ] = useState(true);
 
+  const [ Customize, openCustomize ] = useCustomize(setGame);
+
 
   // New game callback
   const newGame = useCallback(() => {
@@ -33,9 +37,9 @@ const Index = (): JSX.Element => {
       case Level.BEGINNER:     return () => { setLevel(level); setGame(beginner); };
       case Level.INTERMEDIATE: return () => { setLevel(level); setGame(intermediate); };
       case Level.EXPERT:       return () => { setLevel(level); setGame(expert); };
-      default: return () => { setLevel(Level.CUSTOM); };
+      default: return () => { setLevel(Level.CUSTOM); openCustomize(); };
     }
-  }, []);
+  }, [ openCustomize ]);
 
   // Toogle marks callback
   const toggleMarks = useCallback(() => {
@@ -160,6 +164,9 @@ const Index = (): JSX.Element => {
           Rows: {game.rows}&ensp;Columns: {game.columns}&ensp;Mines: {game.mines}&ensp;Scale: {scale}%
         </footer>
       )}
+
+      {/* Modals */}
+      <Customize game={game} />
     </div>
   );
 };
