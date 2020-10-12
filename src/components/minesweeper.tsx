@@ -340,21 +340,18 @@ export const Minesweeper = ({ game, marks = true, scale = 1, onFlagsChange = noo
         field[cell].empty ? accum : accum + 1, 0
       );
 
-      // Update board
+      // Sink target cell
       field[target] = { data , empty: true };
       remaining--;
 
       // Sink cells around
+      let newBoard = { field, remaining };
       if (data === CellData.SUNKEN) {
-        let newBoard = { field, remaining };
-
         around.forEach(cell => {
           if ((field[cell].data & CellData.SINKABLE) !== CellData.SUNKEN) {
             newBoard = sink(newBoard.field, cell, newBoard.remaining);
           }
         });
-
-        return newBoard;
       }
 
       // Win game
@@ -362,17 +359,16 @@ export const Minesweeper = ({ game, marks = true, scale = 1, onFlagsChange = noo
         setStatus(GameStatus.WIN);
         timer.setRunning(false);
       }
+
+      // Return the new field
+      return newBoard;
     }
 
-    // Mine cell
-    else {
-      // Sink cell
-      field[target] = { data: CellData.SUNKEN, empty: false };
 
-      // Stop game
-      setStatus(GameStatus.EXPLODED);
-      timer.setRunning(false);
-    }
+    // Sink mine cell and stop game
+    field[target] = { data: CellData.SUNKEN, empty: false };
+    setStatus(GameStatus.EXPLODED);
+    timer.setRunning(false);
 
     // Return the field
     return { field, remaining };
@@ -438,6 +434,7 @@ export const Minesweeper = ({ game, marks = true, scale = 1, onFlagsChange = noo
 
     // Check target and buttons
     if (
+      !gameOver &&
       (event.buttons === MouseButtons.SECONDARY) &&
       ((source.length !== 0) && (source !== `f`))
     ) {
@@ -466,7 +463,7 @@ export const Minesweeper = ({ game, marks = true, scale = 1, onFlagsChange = noo
       target: source,
       buttons: sunken.buttons | event.buttons
     });
-  }, [ sunken.source, sunken.buttons, flags, marks, board ]);
+  }, [ sunken.source, sunken.buttons, flags, marks, board, gameOver ]);
 
 
   // Global mouse up handler
@@ -533,7 +530,7 @@ export const Minesweeper = ({ game, marks = true, scale = 1, onFlagsChange = noo
         }
 
         // Single
-        else if ((button === MouseButtons.PRIMARY) && ((data & CellData.SINKABLE) !== CellData.SUNKEN)) {
+        else if (!gameOver && (button === MouseButtons.PRIMARY) && ((data & CellData.SINKABLE) !== CellData.SUNKEN)) {
           const field = [ ...board ];
 
           // New game
