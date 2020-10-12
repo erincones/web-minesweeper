@@ -88,25 +88,27 @@ const Customize = ({ game, onClose }: CustomizeProps): JSX.Element => {
       {/* Title */}
       <h2 className="text-center mb-5">Custom Field</h2>
 
-      <form onSubmit={handleSubmit}>
+      <form noValidate onSubmit={handleSubmit}>
         <div className="flex items-stretch">
+          {/* Input fields */}
           <table className="mr-8">
             <tbody>
               <tr>
                 <td><label htmlFor="height" className="mr-4">Height:</label></td>
-                <td><input ref={heightInput} id="height" autoFocus value={height} size={3} onChange={handleHeightChange} onBlur={handleBlur} className="leading-none font-bold border border-black outline-none p-1 mb-1" /></td>
+                <td><input ref={heightInput} id="height" autoFocus value={height} size={3} inputMode="numeric" onChange={handleHeightChange} onBlur={handleBlur} className="leading-none font-bold border border-black outline-none p-1 mb-1" /></td>
               </tr>
               <tr>
                 <td><label htmlFor="width" className="mr-4">Width:</label></td>
-                <td><input ref={widthInput} id="width" value={width} size={3} onChange={handleWidthChange} className="leading-none font-bold border border-black outline-none p-1 mb-1" /></td>
+                <td><input ref={widthInput} id="width" value={width} size={3} inputMode="numeric" onChange={handleWidthChange} className="leading-none font-bold border border-black outline-none p-1 mb-1" /></td>
               </tr>
               <tr>
                 <td><label htmlFor="mines" className="mr-4">Mines:</label></td>
-                <td><input ref={minesInput} id="mines" value={mines} size={3} onChange={handleMinesChange} className="leading-none font-bold border border-black outline-none p-1" /></td>
+                <td><input ref={minesInput} id="mines" value={mines} size={3} inputMode="numeric" onChange={handleMinesChange} className="leading-none font-bold border border-black outline-none p-1" /></td>
               </tr>
             </tbody>
           </table>
 
+          {/* Submit button */}
           <Button ref={submitButton} next={heightInput} prev={minesInput} className="mx-4">
             Ok
           </Button>

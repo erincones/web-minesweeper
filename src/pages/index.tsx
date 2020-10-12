@@ -5,6 +5,7 @@ import { MenuBar, MenuEntry } from "../components/menu-bar";
 import { Minesweeper, beginner, intermediate, expert, Game, Level, GameStatus } from "../components/minesweeper";
 
 import { useCustomize } from "../hooks/customize";
+import { useScale } from "../hooks/scale";
 
 import { noop } from "../utils/helpers";
 
@@ -24,6 +25,7 @@ const Index = (): JSX.Element => {
   const [ statusBar, setStatusBar ] = useState(true);
 
   const [ Customize, openCustomize ] = useCustomize(setGame);
+  const [ Scale, openScale ] = useScale(setScale);
 
 
   // New game callback
@@ -90,7 +92,7 @@ const Index = (): JSX.Element => {
         },
         {
           label: `Scale...`,
-          callback: noop
+          callback: openScale
         },
         `separator`,
         {
@@ -122,7 +124,7 @@ const Index = (): JSX.Element => {
         }
       ]
     }
-  ]), [ level, marks, statusBar, newGame, changeLevel, toggleMarks, toggleStatusBar ]);
+  ]), [ level, marks, statusBar, newGame, changeLevel, toggleMarks, openScale, toggleStatusBar ]);
 
 
   // Game status handler
@@ -167,6 +169,7 @@ const Index = (): JSX.Element => {
 
       {/* Modals */}
       <Customize game={game} />
+      <Scale scale={scale} />
     </div>
   );
 };

@@ -28,7 +28,7 @@ const Component: ForwardRefRenderFunction<HTMLButtonElement, Props> = ({ childre
       { top: -3, right: -3, bottom: -3, left: -3 };
 
     return {
-      text: `leading-none${focus ? ` outline outline-dotted outline-gray` : ``}`,
+      text: `leading-none ${focus ? `outline outline-dotted outline-gray` : ``} px-1`,
       topLeft: { top: pos.top, left: pos.left },
       topRight: { top: pos.top, right: pos.right },
       bottomLeft: { bottom: pos.bottom, left: pos.left },
