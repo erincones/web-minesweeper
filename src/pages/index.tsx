@@ -1,9 +1,10 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 
 import { SEO } from "../components/seo";
 import { MenuBar, MenuEntry } from "../components/menu-bar";
 import { Minesweeper, beginner, intermediate, expert, Game, Level, GameStatus } from "../components/minesweeper";
 
+import { useTypedStore } from "../hooks/typed-store";
 import { useCustomize } from "../hooks/customize";
 import { useScale } from "../hooks/scale";
 
@@ -16,13 +17,15 @@ import icon from "../images/icon.png";
  * Index page
  */
 const Index = (): JSX.Element => {
-  const [ game, setGame ] = useState<Game>(beginner);
-  const [ level, setLevel ] = useState(Level.BEGINNER);
+  const store = useTypedStore();
+
+  const [ game, setGame ] = useState<Game>(() => store.getObject(`game`, beginner));
+  const [ level, setLevel ] = useState<Level>(() => store.getNumber(`level`, Level.BEGINNER));
   const [ status, setStatus ] = useState<GameStatus>(GameStatus.NEW);
-  const [ marks, setMarks ] = useState(true);
+  const [ marks, setMarks ] = useState(() => store.getBoolean(`marks`, true));
   const [ time, setTime ] = useState(0);
-  const [ scale, setScale ] = useState(100);
-  const [ statusBar, setStatusBar ] = useState(true);
+  const [ scale, setScale ] = useState(() => store.getNumber(`scale`, 100));
+  const [ showStatusBar, setShowStatusBar ] = useState(() => store.getBoolean(`showstatusbar`, true));
 
   const [ Customize, openCustomize ] = useCustomize(setGame);
   const [ Scale, openScale ] = useScale(setScale);
@@ -50,7 +53,7 @@ const Index = (): JSX.Element => {
 
   // Toggle status bar
   const toggleStatusBar = useCallback(() => {
-    setStatusBar(statusBar => !statusBar);
+    setShowStatusBar(statusBar => !statusBar);
   }, []);
 
 
@@ -98,7 +101,7 @@ const Index = (): JSX.Element => {
         {
           label: `Status Bar`,
           callback: toggleStatusBar,
-          checked: statusBar
+          checked: showStatusBar
         },
         {
           label: `Best Times...`,
@@ -124,7 +127,7 @@ const Index = (): JSX.Element => {
         }
       ]
     }
-  ]), [ level, marks, statusBar, newGame, changeLevel, toggleMarks, openScale, toggleStatusBar ]);
+  ]), [ level, marks, showStatusBar, newGame, changeLevel, toggleMarks, openScale, toggleStatusBar ]);
 
 
   // Game status handler
@@ -136,6 +139,16 @@ const Index = (): JSX.Element => {
   const handleTimeChange = useCallback((time: number) => {
     setTime(time);
   }, []);
+
+
+  // Store preferences
+  useEffect(() => {
+    store.setObject(`game`, game);
+    store.setNumber(`level`, level);
+    store.setBoolean(`marks`, marks);
+    store.setNumber(`scale`, scale);
+    store.setBoolean(`showstatusbar`, showStatusBar);
+  }, [ store, game, level, marks, scale, showStatusBar ]);
 
 
   // Return page
@@ -161,7 +174,7 @@ const Index = (): JSX.Element => {
       </div>
 
       {/* Status bar */}
-      {statusBar && (
+      {showStatusBar && (
         <footer className="bg-white text-right text-sm font-bold border-t border-black cursor-default px-2 w-full">
           Rows: {game.rows}&ensp;Columns: {game.columns}&ensp;Mines: {game.mines}&ensp;Scale: {scale}%
         </footer>
