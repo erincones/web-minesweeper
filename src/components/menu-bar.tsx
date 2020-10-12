@@ -68,8 +68,7 @@ export const MenuBar = ({ entries }: Props): JSX.Element => {
 
   // Entry key down
   const handleEntryKeyDown = useCallback((event: KeyboardEvent<HTMLButtonElement>) => {
-    // Prevent default and get the current target
-    event.preventDefault();
+    // Get the current target
     const target = event.currentTarget;
 
     // Check key
@@ -98,8 +97,7 @@ export const MenuBar = ({ entries }: Props): JSX.Element => {
 
   // Item key down handler
   const handleItemKeyDown = useCallback((event: KeyboardEvent<HTMLButtonElement>) => {
-    // Prevent default and get the current target
-    event.preventDefault();
+    // Get the current target
     const target = event.currentTarget;
     const parent = target.parentNode as HTMLElement;
 
