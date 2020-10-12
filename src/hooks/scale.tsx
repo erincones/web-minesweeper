@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback, FocusEvent } from "react";
+import React, { useRef, useState, useCallback, KeyboardEvent } from "react";
 
 import { Modal } from "../components/modal";
 import { Button } from "../components/button";
@@ -29,8 +29,6 @@ interface ScaleProps extends Props {
  */
 const Scale = ({ scale, onChange, onClose }: ScaleProps): JSX.Element => {
   const halfInput = useRef<HTMLButtonElement>(null);
-  const fullInput = useRef<HTMLButtonElement>(null);
-  const tripleInput = useRef<HTMLButtonElement>(null);
   const submitButton = useRef<HTMLButtonElement>(null);
 
 
@@ -39,12 +37,11 @@ const Scale = ({ scale, onChange, onClose }: ScaleProps): JSX.Element => {
     () => { onChange(zoom); }
   , [ onChange ]);
 
-
-  // Blur handler
-  const handleBlur = useCallback((event: FocusEvent<HTMLButtonElement>) => {
-    if ((submitButton.current !== null) && (event.relatedTarget !== fullInput.current)) {
+  // Key down handler
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    if ((event.key === `Tab`) && event.shiftKey) {
       event.preventDefault();
-      submitButton.current.focus();
+      submitButton.current?.focus();
     }
   }, []);
 
@@ -66,7 +63,7 @@ const Scale = ({ scale, onChange, onClose }: ScaleProps): JSX.Element => {
         {/* Input fields */}
         <div className="flex">
           <div className="flex">
-            <button ref={halfInput} id="half" type="button" onClick={handleChange(50)} onBlur={handleBlur} className="border border-black rounded-full my-auto mr-2 w-4 h-4">
+            <button ref={halfInput} id="half" type="button" autoFocus={scale === 50} onClick={handleChange(50)} onKeyDown={handleKeyDown} className="border border-black rounded-full my-auto mr-2 w-4 h-4">
               <span className={`${scale === 50 ? `block` : `hidden`} bg-black rounded-full w-2 h-2 mx-auto`} />
             </button>
           </div>
@@ -74,7 +71,7 @@ const Scale = ({ scale, onChange, onClose }: ScaleProps): JSX.Element => {
         </div>
         <div className="flex">
           <div className="flex">
-            <button ref={fullInput} id="full" type="button" onClick={handleChange(100)} className="border border-black rounded-full my-auto mr-2 w-4 h-4">
+            <button id="full" type="button" autoFocus={scale === 100} onClick={handleChange(100)} className="border border-black rounded-full my-auto mr-2 w-4 h-4">
               <span className={`${scale === 100 ? `block` : `hidden`} bg-black rounded-full w-2 h-2 mx-auto`} />
             </button>
           </div>
@@ -82,7 +79,7 @@ const Scale = ({ scale, onChange, onClose }: ScaleProps): JSX.Element => {
         </div>
         <div className="flex items-stretch">
           <div className="flex">
-            <button id="fullHalf" type="button" onClick={handleChange(150)} className="border border-black rounded-full my-auto mr-2 w-4 h-4">
+            <button id="fullHalf" type="button"autoFocus={scale === 150} onClick={handleChange(150)} className="border border-black rounded-full my-auto mr-2 w-4 h-4">
               <span className={`${scale === 150 ? `block` : `hidden`} bg-black rounded-full w-2 h-2 mx-auto`} />
             </button>
           </div>
@@ -90,7 +87,7 @@ const Scale = ({ scale, onChange, onClose }: ScaleProps): JSX.Element => {
         </div>
         <div className="flex items-stretch">
           <div className="flex">
-            <button id="double" type="button" onClick={handleChange(200)} className="border border-black rounded-full my-auto mr-2 w-4 h-4">
+            <button id="double" type="button" autoFocus={scale === 200} onClick={handleChange(200)} className="border border-black rounded-full my-auto mr-2 w-4 h-4">
               <span className={`${scale === 200 ? `block` : `hidden`} bg-black rounded-full w-2 h-2 mx-auto`} />
             </button>
           </div>
@@ -98,7 +95,7 @@ const Scale = ({ scale, onChange, onClose }: ScaleProps): JSX.Element => {
         </div>
         <div className="flex items-stretch mb-2">
           <div className="flex">
-            <button ref={tripleInput} id="triple" type="button" onClick={handleChange(300)} className="border border-black rounded-full my-auto mr-2 w-4 h-4">
+            <button id="triple" type="button" autoFocus={scale === 300} onClick={handleChange(300)} className="border border-black rounded-full my-auto mr-2 w-4 h-4">
               <span className={`${scale === 300 ? `block` : `hidden`} bg-black rounded-full w-2 h-2 mx-auto`} />
             </button>
           </div>
@@ -107,7 +104,7 @@ const Scale = ({ scale, onChange, onClose }: ScaleProps): JSX.Element => {
 
         {/* Submit button */}
         <div className="text-center">
-          <Button ref={submitButton} next={halfInput} prev={tripleInput} className="mx-4">
+          <Button ref={submitButton} next={halfInput} className="mx-4">
             Close
           </Button>
         </div>

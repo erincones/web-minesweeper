@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback, ButtonHTMLAttributes, KeyboardEvent, FocusEvent, useState, useMemo, ForwardRefRenderFunction, MutableRefObject } from "react";
+import React, { forwardRef, useCallback, ButtonHTMLAttributes, KeyboardEvent, useState, useMemo, ForwardRefRenderFunction, MutableRefObject } from "react";
 
 
 /**
@@ -6,9 +6,8 @@ import React, { forwardRef, useCallback, ButtonHTMLAttributes, KeyboardEvent, Fo
  */
 interface Props {
   readonly children: string;
-  readonly type?: ButtonHTMLAttributes<HTMLButtonElement>["type"]
+  readonly type?: ButtonHTMLAttributes<HTMLButtonElement>["type"];
   readonly next?: MutableRefObject<HTMLElement | null>;
-  readonly prev?: MutableRefObject<HTMLElement | null>;
   readonly className?: string;
 }
 
@@ -18,7 +17,7 @@ interface Props {
  *
  * @param props Button properties
  */
-const Component: ForwardRefRenderFunction<HTMLButtonElement, Props> = ({ children, type = `submit`, next, prev, className }: Props, ref): JSX.Element => {
+const Component: ForwardRefRenderFunction<HTMLButtonElement, Props> = ({ children, type = `submit`, next, className }: Props, ref): JSX.Element => {
   const [ focus, setFocus ] = useState(false);
 
   // Syles
@@ -39,19 +38,11 @@ const Component: ForwardRefRenderFunction<HTMLButtonElement, Props> = ({ childre
 
   // Key down handler
   const handleKeyDown = useCallback((event: KeyboardEvent<HTMLButtonElement>) => {
-    if (event.key === `Tab`) {
+    if ((event.key === `Tab`) && !event.shiftKey) {
       event.preventDefault();
-
-      if (event.shiftKey) {
-        if (prev?.current instanceof HTMLElement) {
-          prev.current.focus();
-        }
-      }
-      else if (next?.current instanceof HTMLElement) {
-        next.current.focus();
-      }
+      next?.current?.focus();
     }
-  }, [ next, prev ]);
+  }, [ next ]);
 
   // Focus handler
   const handleFocus = useCallback(() => {
@@ -59,16 +50,9 @@ const Component: ForwardRefRenderFunction<HTMLButtonElement, Props> = ({ childre
   }, []);
 
   // Blur handler
-  const handleBlur = useCallback((event: FocusEvent<HTMLButtonElement>) => {
-    // Focus the next element
-    if ((event.relatedTarget !== next?.current) && (event.relatedTarget !== prev?.current) && (next?.current instanceof HTMLElement)) {
-      event.preventDefault();
-      next.current.focus();
-    }
-
-    // Blur button
+  const handleBlur = useCallback(() => {
     setFocus(false);
-  }, [ next, prev ]);
+  }, []);
 
 
   // Return button
