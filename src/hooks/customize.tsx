@@ -136,11 +136,11 @@ export const useCustomize = (onClose: (game: Game) => void = noop): [ (props: Pr
   }, []);
 
   // Customize modal
-  const customize = useCallback((show: boolean) =>
-    show ? ({ game }: Props) => <Customize game={game} onClose={handleClose} /> : () => null
-  , [ handleClose ]);
+  const customize = useCallback(({ game }: Props) =>
+    show ? <Customize game={game} onClose={handleClose} /> : null
+  , [ show, handleClose ]);
 
 
   // Return hook
-  return [ customize(show), open ];
+  return [ customize, open ];
 };
