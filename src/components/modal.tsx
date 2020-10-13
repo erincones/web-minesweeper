@@ -4,7 +4,7 @@ import { noop } from "../utils/helpers";
 
 
 /**
- * Model properties interfaces
+ * Modal properties interfaces
  */
 interface Props extends HTMLAttributes<HTMLDivElement> {
   readonly onClose?: () => void;
