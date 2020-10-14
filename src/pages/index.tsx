@@ -11,6 +11,7 @@ import { useScale } from "../hooks/scale";
 import { noop } from "../utils/helpers";
 
 import icon from "../images/icon.png";
+import { useAbout } from "../hooks/about";
 
 
 /**
@@ -29,6 +30,7 @@ const Index = (): JSX.Element => {
 
   const [ Customize, openCustomize ] = useCustomize(setGame);
   const [ Scale, openScale ] = useScale(setScale);
+  const [ About, openAbout ] = useAbout();
 
 
   // New game callback
@@ -123,11 +125,11 @@ const Index = (): JSX.Element => {
         `separator`,
         {
           label: `About`,
-          callback: noop
+          callback: openAbout
         }
       ]
     }
-  ]), [ level, marks, showStatusBar, newGame, changeLevel, toggleMarks, openScale, toggleStatusBar ]);
+  ]), [ level, marks, showStatusBar, newGame, changeLevel, toggleMarks, openScale, toggleStatusBar, openAbout ]);
 
 
   // Game status handler
@@ -183,6 +185,7 @@ const Index = (): JSX.Element => {
       {/* Modals */}
       <Customize game={game} />
       <Scale scale={scale} />
+      <About />
     </div>
   );
 };

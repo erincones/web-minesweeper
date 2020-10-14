@@ -1,6 +1,7 @@
 const { colors } = require(`tailwindcss/defaultTheme`);
 
 const outline = require(`./tailwindcss-plugins/outline`);
+const breakWord = require(`./tailwindcss-plugins/break-word`);
 const imageRendering = require(`./tailwindcss-plugins/image-rendering`);
 
 
@@ -39,10 +40,17 @@ module.exports = {
         blue: { ...colors.blue, default: `#0000ff` },
         fuchsia: `#ff00ff`,
         aqua: `#00ffff`
+      },
+      maxWidth: {
+        "4/5": `80%`
+      },
+      maxHeight: {
+        "4/5": `80%`
       }
     }
   },
   variants: {
+    textColor: [ `responsive`, `hover`, `focus`, `visited` ],
     outline: [ `responsive`, `hover`, `focus`, `active` ],
     borderColor: [ `responsive`, `hover`, `focus`, `active`],
     borderWidth: [ `responsive`, `focus`, `active` ],
@@ -50,9 +58,12 @@ module.exports = {
   },
   plugins: [
     outline,
+    breakWord,
     imageRendering
   ],
   corePlugins: {
+    outline: false,
+    wordBreak: false,
     animation: false
   }
 };

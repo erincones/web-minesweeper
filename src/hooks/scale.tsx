@@ -67,7 +67,7 @@ const Scale = ({ scale, onChange, onClose }: ScaleProps): JSX.Element => {
 
   // Return modal
   return (
-    <Modal onClose={handleClose} className="font-bold pt-6 px-5 pb-3">
+    <Modal onClose={handleClose} className="text-sm md:text-base font-bold pt-6 px-5 pb-3">
       {/* Title */}
       <h2 className="text-center mb-5">Scale</h2>
 
@@ -75,7 +75,7 @@ const Scale = ({ scale, onChange, onClose }: ScaleProps): JSX.Element => {
         {/* Input fields */}
         <div className="flex">
           <div className="flex">
-            <button ref={halfInput} id="half" type="button" autoFocus={zoom === `50`} onClick={change(50)} onKeyDown={handleKeyDown} className="border border-black rounded-full my-auto mr-2 w-4 h-4">
+            <button ref={halfInput} id="half" type="button" autoFocus={zoom === `50`} onClick={change(50)} onKeyDown={handleKeyDown} className="border border-black rounded-full my-auto focus:outline focus:outline-dotted focus:outline-gray mr-2 w-4 h-4">
               <span className={`${scale === 50 ? `block` : `hidden`} bg-black rounded-full w-2 h-2 mx-auto`} />
             </button>
           </div>
@@ -83,7 +83,7 @@ const Scale = ({ scale, onChange, onClose }: ScaleProps): JSX.Element => {
         </div>
         <div className="flex">
           <div className="flex">
-            <button id="full" type="button" autoFocus={zoom === `100`} onClick={change(100)} className="border border-black rounded-full my-auto mr-2 w-4 h-4">
+            <button id="full" type="button" autoFocus={zoom === `100`} onClick={change(100)} className="border border-black rounded-full my-auto focus:outline focus:outline-dotted focus:outline-gray mr-2 w-4 h-4">
               <span className={`${scale === 100 ? `block` : `hidden`} bg-black rounded-full w-2 h-2 mx-auto`} />
             </button>
           </div>
@@ -91,7 +91,7 @@ const Scale = ({ scale, onChange, onClose }: ScaleProps): JSX.Element => {
         </div>
         <div className="flex">
           <div className="flex">
-            <button id="double" type="button" autoFocus={zoom === `200`} onClick={change(200)} className="border border-black rounded-full my-auto mr-2 w-4 h-4">
+            <button id="double" type="button" autoFocus={zoom === `200`} onClick={change(200)} className="border border-black rounded-full my-auto focus:outline focus:outline-dotted focus:outline-gray mr-2 w-4 h-4">
               <span className={`${scale === 200 ? `block` : `hidden`} bg-black rounded-full w-2 h-2 mx-auto`} />
             </button>
           </div>
@@ -99,7 +99,7 @@ const Scale = ({ scale, onChange, onClose }: ScaleProps): JSX.Element => {
         </div>
         <div className="flex">
           <div className="flex">
-            <button id="triple" type="button" autoFocus={zoom === `300`} onClick={change(300)} className="border border-black rounded-full my-auto mr-2 w-4 h-4">
+            <button id="triple" type="button" autoFocus={zoom === `300`} onClick={change(300)} className="border border-black rounded-full my-auto focus:outline focus:outline-dotted focus:outline-gray mr-2 w-4 h-4">
               <span className={`${scale === 300 ? `block` : `hidden`} bg-black rounded-full w-2 h-2 mx-auto`} />
             </button>
           </div>

@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback, ButtonHTMLAttributes, KeyboardEvent, useState, useMemo, ForwardRefRenderFunction, MutableRefObject } from "react";
+import React, { forwardRef, useCallback, ButtonHTMLAttributes, KeyboardEvent, useState, useMemo, MouseEvent, ForwardRefRenderFunction, MutableRefObject } from "react";
 
 
 /**
@@ -8,6 +8,7 @@ interface Props {
   readonly children: string;
   readonly type?: ButtonHTMLAttributes<HTMLButtonElement>["type"];
   readonly next?: MutableRefObject<HTMLElement | null>;
+  readonly onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
   readonly className?: string;
 }
 
@@ -17,7 +18,7 @@ interface Props {
  *
  * @param props Button properties
  */
-const Component: ForwardRefRenderFunction<HTMLButtonElement, Props> = ({ children, type = `submit`, next, className }: Props, ref): JSX.Element => {
+const Component: ForwardRefRenderFunction<HTMLButtonElement, Props> = ({ children, type = `submit`, next, onClick, className }: Props, ref): JSX.Element => {
   const [ focus, setFocus ] = useState(false);
 
   // Syles
@@ -57,7 +58,7 @@ const Component: ForwardRefRenderFunction<HTMLButtonElement, Props> = ({ childre
 
   // Return button
   return (
-    <button ref={ref} type={type} onKeyDown={handleKeyDown} onFocus={handleFocus} onBlur={handleBlur} className="relative font-bold bg-silver border-2 outline outline-black border-raised focus:outline focus:outline-black active:outline-2 active:border-b-0 active:border-r-0 active:border-gray active:mb-2px active:mr-2px">
+    <button ref={ref} type={type} onKeyDown={handleKeyDown} onClick={onClick} onFocus={handleFocus} onBlur={handleBlur} className="relative font-bold bg-silver border-2 outline outline-black border-raised focus:outline focus:outline-black active:outline-2 active:border-b-0 active:border-r-0 active:border-gray active:mb-2px active:mr-2px">
       {/* Corners */}
       <div className="absolute bg-white w-px h-px" style={styles.topLeft}/>
       <div className="absolute bg-white w-px h-px" style={styles.topRight}/>

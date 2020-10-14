@@ -81,25 +81,25 @@ const Customize = ({ game, onClose }: CustomizeProps): JSX.Element => {
 
   // Return modal
   return (
-    <Modal onClose={handleClose} className="font-bold pt-6 px-5 pb-3">
+    <Modal onClose={handleClose} className="text-sm md:text-base font-bold pt-6 px-5 pb-3">
       {/* Title */}
       <h2 className="text-center mb-5">Custom Field</h2>
 
       <form noValidate onSubmit={handleSubmit}>
         <div className="flex items-stretch">
           {/* Input fields */}
-          <table className="mr-8">
+          <table className="mr-4 md:mr-8">
             <tbody>
               <tr>
-                <td><label htmlFor="height" className="mr-4">Height:</label></td>
+                <td><label htmlFor="height" className="mr-2 md:mr-4">Height:</label></td>
                 <td><input ref={heightInput} id="height" autoFocus value={height} size={3} inputMode="numeric" onChange={handleHeightChange} onKeyDown={handleKeyDown} className="leading-none font-bold border border-black outline-none p-1 mb-1" /></td>
               </tr>
               <tr>
-                <td><label htmlFor="width" className="mr-4">Width:</label></td>
+                <td><label htmlFor="width" className="mr-2 md:mr-4">Width:</label></td>
                 <td><input id="width" value={width} size={3} inputMode="numeric" onChange={handleWidthChange} className="leading-none font-bold border border-black outline-none p-1 mb-1" /></td>
               </tr>
               <tr>
-                <td><label htmlFor="mines" className="mr-4">Mines:</label></td>
+                <td><label htmlFor="mines" className="mr-2 md:mr-4">Mines:</label></td>
                 <td><input id="mines" value={mines} size={3} inputMode="numeric" onChange={handleMinesChange} className="leading-none font-bold border border-black outline-none p-1" /></td>
               </tr>
             </tbody>

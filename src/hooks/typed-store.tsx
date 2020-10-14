@@ -23,7 +23,6 @@ export const useTypedStore = (): TypedStore => {
   // Get boolean item
   const getBoolean = useCallback((key: string, def = false) => {
     const value = localStorage.getItem(key);
-    console.log(value);
     return value === null ? def : value === `1`;
   }, []);
 
