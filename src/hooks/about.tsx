@@ -1,7 +1,7 @@
 import React, { useRef, useState, useCallback } from "react";
-import { Button } from "../components/button";
 
 import { Modal } from "../components/modal";
+import { Button } from "../components/button";
 
 import icon from "../images/icon.png";
 
@@ -25,12 +25,12 @@ const About = ({ onClose }: Props) => {
 
   // Return modal
   return (
-    <Modal onClose={onClose} className="flex text-sm md:text-base m-6">
+    <Modal onClose={onClose} className="flex text-sm md:text-base font-bold pt-6 px-5 pb-3">
       {/* Icon */}
       <img src={icon} className="inline box-content w-8 h-8 mr-4" />
 
-      <div className="font-bold">
-        <h2 className="mb-6">Web minesweeper</h2>
+      <div>
+        <h2 className="mb-5">Web minesweeper</h2>
 
         <p>
           Web version of the classic minesweeper. Developed from scratch using
@@ -39,10 +39,10 @@ const About = ({ onClose }: Props) => {
         </p>
         <hr className="border-b-2 border-black my-3" />
         <p className="mb-1">
-          Licensed under the <a href="https://github.com/erincones/web-minesweeper/blob/master/LICENSE" className="text-navy visited:text-purple">MIT license</a>.
+          Licensed under the <a href="https://github.com/erincones/web-minesweeper/blob/master/LICENSE" className="text-navy visited:text-purple focus:outline focus:outline-dotted focus:outline-gray">MIT license</a>.
         </p>
         <p className="mb-1">
-          Source code: <a href="https://github.com/erincones/web-minesweeper" className="text-navy break-all visited:text-purple">https://github.com/erincones/web-minesweeper</a>
+          Source code: <a href="https://github.com/erincones/web-minesweeper" className="text-navy break-all visited:text-purple focus:outline focus:outline-dotted focus:outline-gray">https://github.com/erincones/web-minesweeper</a>
         </p>
         <p className="mb-4">
           Copyright © 2020 Erick Rincones.

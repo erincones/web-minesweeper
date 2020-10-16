@@ -7,11 +7,13 @@ import { Minesweeper, beginner, intermediate, expert, Game, Level, GameStatus } 
 import { useTypedStore } from "../hooks/typed-store";
 import { useCustomize } from "../hooks/customize";
 import { useScale } from "../hooks/scale";
+import { useHowToPlay } from "../hooks/how-to-play";
+import { useControls } from "../hooks/controls";
+import { useAbout } from "../hooks/about";
 
 import { noop } from "../utils/helpers";
 
 import icon from "../images/icon.png";
-import { useAbout } from "../hooks/about";
 
 
 /**
@@ -30,6 +32,9 @@ const Index = (): JSX.Element => {
 
   const [ Customize, openCustomize ] = useCustomize(setGame);
   const [ Scale, openScale ] = useScale(setScale);
+
+  const [ HowToPlay, openHowToPlay ] = useHowToPlay();
+  const [ Controls, openControls ] = useControls();
   const [ About, openAbout ] = useAbout();
 
 
@@ -116,11 +121,11 @@ const Index = (): JSX.Element => {
       items: [
         {
           label: `How to play`,
-          callback: noop
+          callback: openHowToPlay
         },
         {
           label: `Controls`,
-          callback: noop
+          callback: openControls
         },
         `separator`,
         {
@@ -129,7 +134,7 @@ const Index = (): JSX.Element => {
         }
       ]
     }
-  ]), [ level, marks, showStatusBar, newGame, changeLevel, toggleMarks, openScale, toggleStatusBar, openAbout ]);
+  ]), [ level, marks, showStatusBar, newGame, changeLevel, toggleMarks, openScale, toggleStatusBar, openHowToPlay, openControls, openAbout ]);
 
 
   // Game status handler
@@ -182,9 +187,14 @@ const Index = (): JSX.Element => {
         </footer>
       )}
 
-      {/* Modals */}
+
+      {/* Game modals */}
       <Customize game={game} />
       <Scale scale={scale} />
+
+      {/* Help modals */}
+      <HowToPlay />
+      <Controls />
       <About />
     </div>
   );
